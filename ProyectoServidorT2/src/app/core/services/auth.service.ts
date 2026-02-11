@@ -17,8 +17,8 @@ export type AuthResponse = {
 export class AuthService {
     private user: AuthUser | null = null
 
-    async register(email: string, password: string): Promise<AuthResponse> {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name: email.split('@')[0], role: 'user' } } })
+    async register(email: string, password: string, name: string | null = null): Promise<AuthResponse> {
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name: name || email.split('@')[0], role: 'user' } } })
         if (error) {
             throw new Error(error.message)
         }
@@ -91,5 +91,10 @@ export class AuthService {
             return this.user
         }
         return null
+    }
+
+    setUserSession(token: string, user: AuthUser) {
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(user))
     }
 }
