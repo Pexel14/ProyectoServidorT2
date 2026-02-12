@@ -1,0 +1,16 @@
+<div
+  *ngIf="visible && message"
+  class="alert-card"
+  [class.is-success]="type === 'success'"
+  [class.is-error]="type === 'error'"
+  [class.is-exiting]="isExiting()"
+  role="status"
+  aria-live="polite"
+>
+  <div class="alert-card__content">
+    <p class="alert-card__message">{{ message }}</p>
+    <button class="alert-card__close" type="button" (click)="onDismiss()" aria-label="Cerrar">
+      &times;
+    </button>
+  </div>
+</div>

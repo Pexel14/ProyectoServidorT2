@@ -2,11 +2,11 @@
     <div class="login-card">
         <h1 class="login-title">Iniciar Sesión</h1>
 
-        <app-login-form></app-login-form>
+        <app-login-form [prefilledEmail]="email"></app-login-form>
         
         <div class="login-footer">
             <a href="#" class="login-link">¿Olvidaste tu contraseña?</a>
-            <p class="login-text">¿No tienes cuenta? <a href="#" class="login-link">Regístrate</a></p>
+            <p class="login-text">¿No tienes cuenta? <a routerLink="/register" class="login-link">Regístrate</a></p>
         </div>
     </div>
 </div>

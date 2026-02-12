@@ -1,0 +1,19 @@
+<div class="product-card">
+    <div class="product-image">
+        <img [src]="product.image" [alt]="product.name" loading="lazy" />
+    </div>
+    <div class="product-details">
+        <h3 class="product-name text-truncate">{{ product.name }}</h3>
+        
+        <div class="product-meta">
+            <span class="product-price">{{ product.price | currency:'EUR':'symbol' }}</span>
+            <span class="product-stock text-sm">
+                <span class="label">Stock:</span> {{ product.quantity }}
+            </span>
+        </div>
+
+        <button class="btn-add" (click)="addToCart()">
+            Añadir
+        </button>
+    </div>
+</div>

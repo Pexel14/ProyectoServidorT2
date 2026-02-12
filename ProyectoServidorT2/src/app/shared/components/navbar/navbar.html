@@ -1,0 +1,171 @@
+<nav class="navbar">
+	<div class="brand">
+		<a class="brand__logo" routerLink="/">
+			<span class="brand__mark">PS</span>
+			<span class="brand__name">Proyecto</span>
+		</a>
+	</div>
+
+	<button
+		class="nav-toggle"
+		type="button"
+		(click)="toggleMenu()"
+		[attr.aria-expanded]="menuOpen"
+		aria-label="Mostrar menu"
+	>
+		<span></span>
+		<span></span>
+		<span></span>
+	</button>
+
+	<div class="nav-links" [class.is-open]="menuOpen">
+		<a
+			class="nav-link"
+			*ngFor="let item of navItems"
+			[routerLink]="item.path"
+			routerLinkActive="is-active"
+		>
+			{{ item.label }}
+		</a>
+	</div>
+
+	<div class="nav-actions">
+			<div class="cart-container" [style.visibility]="showCart ? 'visible' : 'hidden'">
+				<button
+					class="icon-button"
+					(click)="toggleCart()"
+					aria-label="Carrito"
+				>
+				<svg viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M7 6h14l-2 9H8L6 3H3"
+						fill="none"
+						stroke="currentColor"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="1.6"
+					></path>
+					<circle cx="9" cy="20" r="1.6"></circle>
+					<circle cx="18" cy="20" r="1.6"></circle>
+				</svg>
+				<span class="cart-badge" *ngIf="cartService.totalItems() > 0">{{ cartService.totalItems() }}</span>
+			</button>
+
+			<div class="cart-dropdown" *ngIf="isCartOpen">
+				<div class="cart-header">
+					<h3>Tu Carrito ({{ cartService.totalItems() }})</h3>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="clear-cart-btn" (click)="cartService.clearCart()" style="font-size: 0.8rem; color: #ef4444; background: none; border: none; cursor: pointer; text-decoration: underline;" [disabled]="cartService.cartItems().length === 0">Vaciar</button>
+					    <button class="close-btn" (click)="toggleCart()" aria-label="Cerrar carrito">&times;</button>
+                    </div>
+				</div>
+				
+				<div class="cart-items" *ngIf="cartService.cartItems().length > 0; else emptyCart">
+					<div class="cart-item" *ngFor="let item of cartService.cartItems()">
+						<img [src]="item.image" [alt]="item.name" class="cart-item-img">
+						<div class="cart-item-details">
+                            <div class="item-row">
+                                <span class="item-name">{{ item.name }}</span>
+                                <button class="close-btn" style="font-size: 1.2rem; margin-top: -4px;" (click)="cartService.removeFromCart(item.id)" aria-label="Eliminar">&times;</button>
+                            </div>
+							
+                            <div class="item-controls">
+                                <div class="quantity-controls">
+                                    <button (click)="cartService.updateQuantity(item.id, item.quantityInCart - 1)" [disabled]="item.quantityInCart <= 1" aria-label="Menos">-</button>
+                                    <span>{{ item.quantityInCart }}</span>
+                                    <button (click)="cartService.updateQuantity(item.id, item.quantityInCart + 1)" [disabled]="item.quantityInCart >= item.quantity" aria-label="Mas">+</button>
+                                </div>
+                                <span class="item-price">{{ (item.price * item.quantityInCart) | currency:'EUR' }}</span>
+                            </div>
+						</div>
+					</div>
+                </div>
+                
+                <div class="cart-footer" *ngIf="cartService.cartItems().length > 0">
+                    <div class="cart-total">
+                        <span>Total:</span>
+                        <span>{{ cartService.totalPrice() | currency:'EUR' }}</span>
+                    </div>
+                    <button type="button" (click)="openCheckout()" class="checkout-btn">Realizar Pedido</button>
+                </div>
+				
+				<ng-template #emptyCart>
+					<div class="empty-state">
+						<p>Tu carrito está vacío</p>
+					</div>
+				</ng-template>
+			</div>
+		</div>
+
+		<div class="user-menu" style="position: relative;">
+			<button
+				class="user-chip"
+				type="button"
+				aria-label="Cuenta de usuario"
+				(click)="toggleUserMenu()"
+			>
+				<img *ngIf="avatarUrl" [src]="avatarUrl" class="user-chip__avatar-img" alt="Avatar">
+				<span *ngIf="!avatarUrl" class="user-chip__avatar">{{ userInitials }}</span>
+				<span class="user-chip__label">{{ userName }}</span>
+				<svg viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M6 9l6 6 6-6"
+						fill="none"
+						stroke="currentColor"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="1.6"
+					></path>
+				</svg>
+			</button>
+
+			<div class="user-dropdown cart-dropdown" *ngIf="isUserMenuOpen">
+				<div class="cart-header">
+					<h3>Mi Cuenta</h3>
+					<button class="close-btn" (click)="toggleUserMenu()" aria-label="Cerrar menú">&times;</button>
+				</div>
+				
+				<div class="user-info-section" style="padding: 1rem 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+					<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+						<div class="avatar-large" style="width: 50px; height: 50px; border-radius: 50%; background: #3b0764; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; overflow: hidden;">
+                             <img *ngIf="avatarUrl" [src]="avatarUrl" style="width: 100%; height: 100%; object-fit: cover;">
+                             <span *ngIf="!avatarUrl">{{ userInitials }}</span>
+                        </div>
+						<div>
+							<div style="font-weight: 600; font-size: 1.1rem;">{{ userName }}</div>
+							<div style="font-size: 0.85rem; color: #64748b; text-transform: capitalize;">Rol: {{ role }}</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="user-actions">
+                    <button class="menu-item" (click)="goToOrders()" style="display: flex; align-items: center; width: 100%; padding: 0.75rem; background: none; border: none; cursor: pointer; color: #4b5563; font-size: 0.95rem; text-align: left; border-radius: 6px; transition: background 0.2s;">
+                        <span style="margin-right: 0.75rem;"></span> Mis Pedidos
+                    </button>
+                    
+                    <button class="menu-item" (click)="openEditProfile()" style="display: flex; align-items: center; width: 100%; padding: 0.75rem; background: none; border: none; cursor: pointer; color: #4b5563; font-size: 0.95rem; text-align: left; border-radius: 6px; transition: background 0.2s;">
+                        <span style="margin-right: 0.75rem;"></span> Editar Perfil
+                    </button>
+                    
+                    <button class="menu-item logout" (click)="logout()" style="display: flex; align-items: center; width: 100%; padding: 0.75rem; background: none; border: none; cursor: pointer; color: #ef4444; font-size: 0.95rem; text-align: left; border-radius: 6px; transition: background 0.2s; margin-top: 0.5rem;">
+                        <span style="margin-right: 0.75rem;"></span> Cerrar Sesión
+                    </button>
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
+
+<app-checkout-modal
+  [isOpen]="showCheckoutModal"
+  [cartItems]="cartService.cartItems()"
+  [totalAmount]="cartService.totalPrice()"
+  (close)="closeCheckout()"
+></app-checkout-modal>
+
+<app-edit-profile-modal
+  [isOpen]="showEditProfileModal"
+  [user]="currentUser"
+  (close)="closeEditProfile()"
+  (save)="onProfileUpdated($event)"
+></app-edit-profile-modal>

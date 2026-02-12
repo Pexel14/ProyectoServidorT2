@@ -1,4 +1,11 @@
-<form class="login-form">
+<app-alert-card
+    [message]="alertMessage()"
+    [type]="alertType()"
+    [visible]="alertVisible()"
+    (dismissed)="onAlertDismiss()"
+></app-alert-card>
+
+<form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
     <div class="form-group">
         <label for="email" class="form-label">Correo Electrónico</label>
         <input 
@@ -6,6 +13,7 @@
             id="email" 
             class="form-input" 
             placeholder="correo@email.com"
+            formControlName="email"
             required
         >
     </div>
@@ -17,9 +25,10 @@
             id="password" 
             class="form-input" 
             placeholder="Introduce tu contraseña"
+            formControlName="password"
             required
         >
     </div>
 
-    <button type="submit" class="login-button" (submit)="onLogin()">Iniciar Sesión</button>
+    <button type="submit" class="login-button">Iniciar Sesión</button>
 </form>

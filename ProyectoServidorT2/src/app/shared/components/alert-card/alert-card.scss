@@ -1,0 +1,92 @@
+:host {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  display: block;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.alert-card {
+  animation: slideInRight 0.3s ease-out forwards;
+  min-width: 260px;
+  max-width: 360px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 36px rgba(17, 24, 39, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 0.95rem 1rem;
+  border-left: 6px solid transparent;
+}
+
+.alert-card.is-exiting {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+.alert-card.is-success {
+  border-left-color: #16a34a;
+}
+
+.alert-card.is-error {
+  border-left-color: #dc2626;
+}
+
+.alert-card__content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.alert-card__message {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.alert-card__close {
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.alert-card__close:hover {
+  color: #111827;
+}
+
+@media (max-width: 640px) {
+  :host {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .alert-card {
+    max-width: none;
+    width: 100%;
+  }
+}

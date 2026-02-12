@@ -1,11 +1,20 @@
 @use "sass:color";
 
+:host {
+	display: block;
+	min-height: 100vh;
+	overflow: hidden;
+	background: #e5e7eb;
+}
+
 .login-container {
 	min-height: 100vh;
+	width: 100%;
 	display: grid;
 	place-items: center;
 	padding: 2rem 1rem;
-	background: linear-gradient(135deg, #f5f7fa 0%, #e7eff7 100%);
+	box-sizing: border-box;
+	background: #e5e7eb;
 }
 
 .login-card {
@@ -14,15 +23,15 @@
 	padding: 2rem 2.25rem;
 	border-radius: 16px;
 	background: #ffffff;
-	box-shadow: 0 18px 45px rgba(20, 40, 80, 0.12);
-	border: 1px solid rgba(20, 40, 80, 0.06);
+	box-shadow: 0 20px 45px rgba(76, 29, 149, 0.18);
+	border: 1px solid rgba(76, 29, 149, 0.2);
 }
 
 .login-title {
 	margin: 0 0 1.5rem 0;
 	font-size: 1.75rem;
 	font-weight: 700;
-	color: #1b2a3a;
+	color: #3b0764;
 	letter-spacing: -0.02em;
 }
 
@@ -36,11 +45,11 @@
 .login-text {
 	margin: 0;
 	font-size: 0.95rem;
-	color: #5a6b7b;
+	color: #5b5568;
 }
 
 .login-link {
-	color: #2563eb;
+	color: #f59e0b;
 	text-decoration: none;
 	font-weight: 600;
 }

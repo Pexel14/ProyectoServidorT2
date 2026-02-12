@@ -1,0 +1,66 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content" *ngIf="order">
+    <div class="modal-header">
+      <div class="header-info">
+        <h2>Pedido #{{ order.id }}</h2>
+        <span class="order-date">{{ order.created_at | date:'d MMM y, H:mm' }}</span>
+        <span class="status-badge" [class]="order.state?.toLowerCase().replace(' ', '-')">{{ order.state }}</span>
+      </div>
+      <button class="close-btn" (click)="onCloseRequest()">&times;</button>
+    </div>
+
+    <div class="order-details-body">
+      <div class="section address-section">
+        <h3>Dirección de Envío</h3>
+        <p><strong>{{ order.calle }} {{ order.numero }}</strong></p>
+        <p>{{ order.codigo_postal }} {{ order.ciudad }} ({{ order.provincia }})</p>
+        <p *ngIf="order.observaciones" class="obs">Nota: {{ order.observaciones }}</p>
+      </div>
+
+      <div class="section items-section">
+        <h3>Productos</h3>
+        
+        <div *ngIf="!order.items" style="padding: 1rem; text-align: center; color: #6b7280;">
+          Cargando productos...
+        </div>
+
+        <div class="items-list" *ngIf="order.items">
+          <div class="item" *ngFor="let item of order.items">
+            <!-- Checking product fields safely -->
+            <img [src]="item.product?.image || 'assets/placeholder.png'" alt="Sin imagen" class="item-img">
+            <div class="item-info">
+              <span class="item-name">{{ item.product?.name || 'Producto desconocido' }}</span>
+              <div class="item-meta">
+                <span>{{ item.cantidad }}x {{ item.precio_unitario | currency:'EUR' }}</span>
+              </div>
+            </div>
+            <div class="item-total">
+              {{ (item.cantidad * item.precio_unitario) | currency:'EUR' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-total">
+        <span>Total Pedido:</span>
+        <span class="amount">{{ order.total | currency:'EUR' }}</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <!-- Only show cancel if not already cancelled or delivered -->
+       <!-- Assuming 'En espera' or 'pendiente' is cancellable -->
+      <button *ngIf="canCancel(order.state)" class="btn-danger" (click)="askCancelOrder()">Cancelar Pedido</button>
+      <button class="btn-primary" (click)="onCloseRequest()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<app-confirmation-modal
+  [isOpen]="showCancelConfirmation"
+  title="Cancelar Pedido"
+  message="¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer."
+  (confirm)="confirmCancel()"
+  (cancel)="cancelCancel()"
+>
+</app-confirmation-modal>

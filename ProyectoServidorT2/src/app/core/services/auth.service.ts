@@ -5,7 +5,8 @@ export type AuthUser = {
     id: string,
     name: string,
     email: string | undefined,
-    role: "admin" | "user"
+    role: "admin" | "user",
+    avatar?: string
 }
 
 export type AuthResponse = {
@@ -26,7 +27,8 @@ export class AuthService {
             id: data.user?.id || '',
             name: data.user?.user_metadata['name'] || '',
             email: data.user?.email || '',
-            role: data.user?.user_metadata['role'] || 'user'
+            role: data.user?.user_metadata['role'] || 'user',
+            avatar: data.user?.user_metadata['avatar_url']
         }
         return {
             token: data.session?.access_token || '',
@@ -43,12 +45,37 @@ export class AuthService {
             id: data.user?.id || '',
             name: data.user?.user_metadata['name'] || '',
             email: data.user?.email || '',
-            role: data.user?.user_metadata['role'] || 'user'
+            role: data.user?.user_metadata['role'] || 'user',
+            avatar: data.user?.user_metadata['avatar_url']
         }
         return {
             token: data.session?.access_token || '',
             user: this.user
         }
+    }
+
+    async updateProfile(name: string, avatar?: string): Promise<AuthUser> {
+        const { data, error } = await supabase.auth.updateUser({
+            data: { name, avatar_url: avatar }
+        });
+
+        if (error) throw new Error(error.message);
+        
+        if (data.user) {
+             this.user = {
+                id: data.user.id,
+                name: data.user.user_metadata['name'] || '',
+                email: data.user.email,
+                role: data.user.user_metadata['role'] || 'user',
+                avatar: data.user.user_metadata['avatar_url']
+            };
+            const currentToken = localStorage.getItem('token');
+            if (currentToken) {
+                this.setUserSession(currentToken, this.user);
+            }
+            return this.user;
+        }
+        throw new Error('No user updated');
     }
 
     async logout() {
@@ -66,7 +93,8 @@ export class AuthService {
                     id: session.user.id,
                     name: session.user.user_metadata['name'] || '',
                     email: session.user.email || '',
-                    role: session.user.user_metadata['role'] || 'user'
+                    role: session.user.user_metadata['role'] || 'user',
+                    avatar: session.user.user_metadata['avatar_url']
                 }
                 callback(this.user)
             } else {
@@ -86,7 +114,8 @@ export class AuthService {
                 id: data.user.id,
                 name: data.user.user_metadata['name'] || '',
                 email: data.user.email || '',
-                role: data.user.user_metadata['role'] || 'user'
+                role: data.user.user_metadata['role'] || 'user',
+                avatar: data.user.user_metadata['avatar_url']
             }
             return this.user
         }

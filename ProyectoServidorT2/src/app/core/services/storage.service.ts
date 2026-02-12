@@ -15,13 +15,13 @@ export type UploadResponse = {
 
 @Injectable({ providedIn: 'root' })
 export class StorageService {
-    private bucket: string = 'files'
+    private bucket: string = 'avatars'
 
-    async uploadFile(file: File, path: string): Promise<UploadResponse> {
-        const filePath = `${path}/${file.name}`
+    async uploadFile(file: File, path: string, options: { upsert?: boolean } = {}): Promise<UploadResponse> {
+        const filePath = path ? `${path}/${file.name}` : file.name
         const { data, error } = await supabase.storage
             .from(this.bucket)
-            .upload(filePath, file, { upsert: false })
+            .upload(filePath, file, { upsert: options.upsert ?? false })
         
         if (error) {
             throw new Error(error.message)

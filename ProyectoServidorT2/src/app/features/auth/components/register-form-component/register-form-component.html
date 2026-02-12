@@ -1,23 +1,30 @@
-<form class="register-form">
+<app-alert-card
+	[message]="alertMessage()"
+	[type]="alertType()"
+	[visible]="alertVisible()"
+	(dismissed)="onAlertDismiss()"
+></app-alert-card>
+
+<form class="register-form" [formGroup]="formGroup" (ngSubmit)="onRegister()">
 	<div class="form-group">
 		<label for="nombre" class="form-label">Nombre Completo</label>
-		<input type="text" id="nombre" name="nombre" class="form-input" required>
+		<input type="text" id="nombre" name="nombre" class="form-input" formControlName="name" required>
 	</div>
 
 	<div class="form-group">
 		<label for="email" class="form-label">Correo Electronico</label>
-		<input type="email" id="email" name="email" class="form-input" required>
+		<input type="email" id="email" name="email" class="form-input" formControlName="email" required>
 	</div>
 
 	<div class="form-group">
 		<label for="password" class="form-label">Contrasena</label>
-		<input type="password" id="password" name="password" class="form-input" required>
+		<input type="password" id="password" name="password" class="form-input" formControlName="password" required>
 	</div>
 
 	<div class="form-group">
 		<label for="confirmPassword" class="form-label">Confirmar Contrasena</label>
-		<input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required>
+		<input type="password" id="confirmPassword" name="confirmPassword" class="form-input" formControlName="confirmPassword" required>
 	</div>
 
-	<button type="submit" class="register-button" (submit)="onRegister()">Registrarse</button>
+	<button type="submit" class="register-button">Registrarse</button>
 </form>

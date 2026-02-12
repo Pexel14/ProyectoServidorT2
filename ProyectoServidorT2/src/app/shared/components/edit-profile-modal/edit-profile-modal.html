@@ -1,0 +1,39 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Editar Perfil</h2>
+      <button class="close-btn" (click)="close.emit()">&times;</button>
+    </div>
+    
+    <app-alert-card 
+      [visible]="alertVisible" 
+      [message]="alertMessage" 
+      [type]="alertType" 
+      (dismissed)="onAlertDismissed()">
+    </app-alert-card>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="name">Nombre</label>
+        <input id="name" type="text" formControlName="name" placeholder="Tu nombre">
+      </div>
+
+      <div class="form-group">
+        <label for="avatar">Avatar</label>
+        <div class="avatar-upload-container">
+          <div class="current-avatar" *ngIf="previewUrl">
+            <img [src]="previewUrl" alt="Avatar preview">
+          </div>
+          <input id="avatar" type="file" (change)="onFileSelected($event)" accept="image/*">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Cancelar</button>
+        <button type="submit" class="btn-save" [disabled]="profileForm.invalid || loading || (alertVisible && alertType === 'success')">
+          {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -7,8 +7,8 @@
     "types": []
   },
   "include": [
-    "src/**/*.ts", 
-    "src/app/lib/supabase.js"  ],
+    "src/**/*.ts"
+  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]
