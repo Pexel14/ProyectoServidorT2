@@ -1,0 +1,52 @@
+<div class="admin-layout">
+  <header class="admin-header">
+    <h1>Gestión de Productos</h1>
+    <button class="btn-create" (click)="createNew()">+ Nuevo Producto</button>
+  </header>
+
+  <div class="products-list">
+    <div class="product-row-card" *ngFor="let product of products">
+        <div class="product-info-main">
+            <img [src]="product.image" alt="img" class="product-img" (error)="onImageError($event)">
+            <div class="info-text">
+                <h3>{{ product.name }}</h3>
+                <span class="stock-badge" [class.low]="product.quantity < 5" [class.out]="product.quantity === 0">
+                    Stock: {{ product.quantity }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="product-price">
+            {{ product.price | currency:'EUR' }}
+        </div>
+
+        <div class="actions">
+            <button class="btn-edit" (click)="editProduct(product.id)">
+                Editar
+            </button>
+            <button class="btn-delete" (click)="deleteProduct(product.id)" title="Eliminar">
+                X
+            </button>
+        </div>
+    </div>
+  </div>
+  
+  <div *ngIf="products.length === 0" class="empty-state">
+      <p>No hay productos registrados.</p>
+  </div>
+
+  <app-admin-product-form 
+    *ngIf="showModal" 
+    [product]="selectedProduct" 
+    (close)="closeModal()" 
+    (saved)="onProductSaved()">
+  </app-admin-product-form>
+
+  <app-confirmation-modal
+    [isOpen]="showDeleteModal"
+    title="Confirmar Eliminación"
+    message="¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer."
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()">
+  </app-confirmation-modal>
+</div>

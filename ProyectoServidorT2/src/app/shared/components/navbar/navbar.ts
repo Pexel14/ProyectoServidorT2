@@ -5,7 +5,7 @@ import { filter } from 'rxjs/operators';
 import { CartService } from '../../../features/products/services/cart.service';
 import { CheckoutModalComponent } from '../../../features/orders/components/checkout-modal/checkout-modal';
 import { EditProfileModalComponent } from '../edit-profile-modal/edit-profile-modal';
-import { AuthUser } from '../../../core/services/auth.service';
+import { AuthUser, AuthService } from '../../../core/services/auth.service';
 
 type NavItem = {
   label: string;
@@ -20,6 +20,7 @@ type NavItem = {
 })
 export class Navbar implements OnInit {
   cartService = inject(CartService);
+  authService = inject(AuthService);
   menuOpen = false;
   role: 'admin' | 'user' = 'user';
   userName = 'Usuario';
@@ -38,25 +39,24 @@ export class Navbar implements OnInit {
   private router = inject(Router);
 
   ngOnInit(): void {
+    // Check initial user from localStorage or Service
+    // Better to use AuthService to check current state from Supabase if possible, 
+    // but synchronous local storage is faster for UI rendering.
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser) as AuthUser;
-        this.currentUser = parsed;
-        if (parsed.role) {
-          this.role = parsed.role;
-        }
-        if (parsed.name) {
-          this.userName = parsed.name;
-          this.userInitials = this.getInitials(parsed.name);
-        }
-        if (parsed.avatar) {
-            this.avatarUrl = parsed.avatar;
-        }
-      } catch {
-        this.userName = 'Usuario';
-      }
+        this.updateUserFromStorage(JSON.parse(storedUser));
     }
+
+    // Subscribe to Auth Changes
+    this.authService.onAuthStateChange((user) => {
+        if (user) {
+            this.updateUserFromStorage(user);
+        } else {
+             this.currentUser = null;
+             this.role = 'user';
+             this.setNavItems();
+        }
+    });
 
     this.setNavItems();
 
@@ -69,6 +69,23 @@ export class Navbar implements OnInit {
 
     // Initial check
     this.updateCartVisibility(this.router.url);
+  }
+
+  updateUserFromStorage(user: AuthUser) {
+      this.currentUser = user;
+      if (user.role) {
+          this.role = user.role;
+      }
+      if (user.name) {
+          this.userName = user.name;
+          this.userInitials = this.getInitials(user.name);
+      }
+      if (user.avatar) {
+          this.avatarUrl = user.avatar;
+      } else {
+          this.avatarUrl = undefined;
+      }
+      this.setNavItems();
   }
 
   toggleMenu(): void {
@@ -114,20 +131,23 @@ export class Navbar implements OnInit {
     this.role = updatedUser.role;
   }
 
-  logout(): void {
+  async logout() {
+    this.cartService.clearCart(false);
+    await this.authService.logout(); // Use service to logout properly
     localStorage.removeItem('user');
     localStorage.removeItem('sb-access-token');
     localStorage.removeItem('sb-refresh-token');
-    this.router.navigate(['/auth/login']);
+    
+    this.currentUser = null; // Explicitly clear state
+    this.setNavItems();
+    
+    this.router.navigate(['/login']);
   }
 
   private updateCartVisibility(url: string): void {
-    if (this.role === 'admin') {
+    if (url.includes('/admin') || url.includes('/login') || url.includes('/register')) {
       this.showCart = false;
-      return;
-    }
-    // Hide cart if we are in the orders page
-    if (url.includes('/pedidos')) {
+    } else if (url.includes('/pedidos')) {
       this.showCart = false;
     } else {
       this.showCart = true;
@@ -135,22 +155,29 @@ export class Navbar implements OnInit {
   }
 
   private setNavItems(): void {
-    if (this.role === 'admin') {
+    if (this.currentUser && this.role === 'admin') {
       this.navItems = [
         { label: 'Ver productos', path: '/productos' },
-        { label: 'Registrar productos', path: '/admin/productos' },
-        { label: 'Ver pedidos', path: '/admin/pedidos' },
-        { label: 'Ver usuarios', path: '/admin/usuarios' },
+        { label: 'Gestión Productos', path: '/admin/productos' },
+        { label: 'Gestionar Pedidos', path: '/admin/pedidos' },
+        { label: 'Gestionar Usuarios', path: '/admin/usuarios' },
       ];
-      this.showCart = false;
+      // Allow cart for admin in non-admin pages
       return;
+    } else if (this.currentUser) {
+        this.navItems = [
+            { label: 'Ver productos', path: '/productos' },
+            { label: 'Ver pedidos', path: '/pedidos' },
+        ];
+    } else {
+        // Guest
+        this.navItems = [
+            { label: 'Ver productos', path: '/productos' },
+        ];
     }
-
-    this.navItems = [
-      { label: 'Ver productos', path: '/productos' },
-      { label: 'Ver pedidos', path: '/pedidos' },
-    ];
-    this.showCart = true;
+    
+    // Logic for cart visibility depends on URL, not just items
+    this.updateCartVisibility(this.router.url);
   }
 
   private getInitials(name: string): string {

@@ -1,0 +1,62 @@
+<div class="admin-orders-container">
+  <header class="page-header">
+    <h1>Gestión de Pedidos</h1>
+  </header>
+
+  <app-order-filters
+    [filters]="filters"
+    (filtersChange)="onFilterChange($event)">
+  </app-order-filters>
+
+  <div class="table-responsive">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders; trackBy: trackById">
+          <td>#{{ order.id }}</td>
+          <td>
+            <div class="client-cell">
+              <img [src]="order.user_avatar" alt="" class="mini-avatar">
+              <span>{{ order.user_name }}</span>
+            </div>
+          </td>
+          <td>{{ order.created_at | date:'short' }}</td>
+          <td>{{ order.total | currency:'EUR' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(order.state)">
+              {{ order.state }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-edit" (click)="openEditModal(order)">
+              Gestión
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="orders.length === 0 && !loading">
+          <td colspan="6" class="no-data">No se encontraron pedidos</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div *ngIf="loading" class="loading-spinner">
+      Cargando pedidos...
+    </div>
+  </div>
+</div>
+
+<app-admin-order-edit-modal
+  *ngIf="showEditModal"
+  [order]="selectedOrder"
+  (close)="closeModal()"
+  (saved)="onModalSaved()">
+</app-admin-order-edit-modal>

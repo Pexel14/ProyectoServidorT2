@@ -1,0 +1,35 @@
+<div class="filters-panel">
+    <div class="filter-group">
+      <label>Estado</label>
+      <select [(ngModel)]="filters.state" (ngModelChange)="onFilterChange()">
+        <option value="">Todos</option>
+        <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Fecha Desde</label>
+      <input type="date" [(ngModel)]="filters.dateFrom" (ngModelChange)="onFilterChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Fecha Hasta</label>
+      <input type="date" [(ngModel)]="filters.dateTo" (ngModelChange)="onFilterChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Precio Mín</label>
+      <input type="number" [(ngModel)]="filters.minPrice" (ngModelChange)="onFilterChange()" placeholder="0">
+    </div>
+
+    <div class="filter-group">
+      <label>Precio Máx</label>
+      <input type="number" [(ngModel)]="filters.maxPrice" (ngModelChange)="onFilterChange()" placeholder="Max">
+    </div>
+    
+    <div class="filter-actions">
+        <button class="btn-clear" (click)="clearFilters()">
+          Limpiar
+        </button>
+    </div>
+  </div>

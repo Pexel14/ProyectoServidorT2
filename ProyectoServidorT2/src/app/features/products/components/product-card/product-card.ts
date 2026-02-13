@@ -18,4 +18,8 @@ export class ProductCardComponent {
     addToCart() {
         this.cartService.addToCart(this.product);
     }
+
+    onImageError(event: any) {
+        event.target.src = 'https://placehold.co/400x300?text=Sin+Imagen';
+    }
 }

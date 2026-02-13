@@ -97,7 +97,7 @@
 			</div>
 		</div>
 
-		<div class="user-menu" style="position: relative;">
+		<div class="user-menu" style="position: relative;" *ngIf="currentUser; else loginBtn">
 			<button
 				class="user-chip"
 				type="button"
@@ -139,7 +139,7 @@
 				</div>
 
 				<div class="user-actions">
-                    <button class="menu-item" (click)="goToOrders()" style="display: flex; align-items: center; width: 100%; padding: 0.75rem; background: none; border: none; cursor: pointer; color: #4b5563; font-size: 0.95rem; text-align: left; border-radius: 6px; transition: background 0.2s;">
+                    <button *ngIf="role !== 'admin'" class="menu-item" (click)="goToOrders()" style="display: flex; align-items: center; width: 100%; padding: 0.75rem; background: none; border: none; cursor: pointer; color: #4b5563; font-size: 0.95rem; text-align: left; border-radius: 6px; transition: background 0.2s;">
                         <span style="margin-right: 0.75rem;"></span> Mis Pedidos
                     </button>
                     
@@ -153,6 +153,9 @@
 				</div>
 			</div>
 		</div>
+		<ng-template #loginBtn>
+			<a routerLink="/login" class="login-btn-link">Acceder</a>
+		</ng-template>
 	</div>
 </nav>
 

@@ -140,4 +140,77 @@ export class OrderService {
       throw error;
     }
   }
+
+  async getOrdersByUserId(userId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('Pedidos')
+      .select('id, created_at, total, state')
+      .eq('id_user', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user orders:', error);
+      throw error;
+    }
+    return data || [];
+  }
+
+  async getAllOrders(filters?: OrderFilters): Promise<any[]> {
+    let query = supabase
+      .from('Pedidos')
+      .select('*, users:id_user ( full_name, avatar_url )');
+
+    if (filters) {
+      if (filters.state) {
+        query = query.eq('state', filters.state);
+      }
+      if (filters.dateFrom) {
+        query = query.gte('created_at', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        query = query.lte('created_at', filters.dateTo);
+      }
+      if (filters.minPrice !== undefined && filters.minPrice !== null) {
+        query = query.gte('total', filters.minPrice);
+      }
+      if (filters.maxPrice !== undefined && filters.maxPrice !== null) {
+        query = query.lte('total', filters.maxPrice);
+      }
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+       console.error('Error fetching all orders:', error);
+       throw error;
+    }
+
+    return data.map((order: any) => ({
+      ...order,
+      user_name: order.users?.full_name || 'Usuario desconocido',
+      user_avatar: order.users?.avatar_url || 'https://placehold.co/100x100?text=?',
+    }));
+  }
+
+  async updateOrderStatus(orderId: number, status: string): Promise<void> {
+    console.log('Updating order status:', orderId, status);
+    const { data, error } = await supabase
+      .from('Pedidos')
+      .update({ state: status })
+      .eq('id', orderId)
+      .select();
+
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw error;
+    }
+    
+    if (data && data.length === 0) {
+      console.warn('No order updated. Check RLS policies or if ID exists.');
+      // Optionally throw an error if you want the UI to know
+      throw new Error('No se pudo actualizar el pedido. Verifique permisos o existencia.');
+    }
+    
+    console.log('Order updated successfully:', data);
+  }
 }

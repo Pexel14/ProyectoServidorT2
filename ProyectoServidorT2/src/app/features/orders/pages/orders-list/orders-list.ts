@@ -4,12 +4,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
 import { OrderDetailsModalComponent } from '../../components/order-details-modal/order-details-modal';
+import { OrderFiltersComponent } from '../../../../shared/components/order-filters/order-filters';
 import { OrderFilters } from '../../models/orderFilter.model';
 
 @Component({
   selector: 'app-orders-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, OrderDetailsModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, OrderDetailsModalComponent, OrderFiltersComponent],
   templateUrl: './orders-list.html',
   styleUrls: ['./orders-list.scss']
 })
@@ -27,7 +28,6 @@ export class OrdersList implements OnInit {
     maxPrice: undefined
   };
 
-  states = ['En espera', 'Cancelado', 'En envio', 'Recibido'];
   private searchTimeout: any;
 
   private orderService = inject(OrderService);
@@ -42,6 +42,7 @@ export class OrdersList implements OnInit {
     // Force loading state in zone
     this.ngZone.run(() => {
       this.loading = true;
+      this.orders = []; // Clear list
     });
 
     const cleanFilters: OrderFilters = {};
@@ -67,24 +68,14 @@ export class OrdersList implements OnInit {
     });
   }
 
-  applyFilters() {
-    if (this.searchTimeout) {
-      clearTimeout(this.searchTimeout);
-    }
-    this.searchTimeout = setTimeout(() => {
-      this.refreshOrders();
-    }, 300);
-  }
-
-  clearFilters() {
-    this.filters = {
-      state: '',
-      dateFrom: '',
-      dateTo: '',
-      minPrice: undefined,
-      maxPrice: undefined
-    };
+  onFiltersChange(newFilters: OrderFilters) {
+    // Break reference to ensure change detection
+    this.filters = { ...newFilters };
     this.refreshOrders();
+  } 
+
+  trackById(index: number, item: any): any {
+    return item.id;
   }
 
   getBadgeClass(state: string): string {

@@ -2,7 +2,7 @@
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
-  z-index: 1000;
+  z-index: 9999; /* Ensure it's above any modal (usually ~1050) */
   display: block;
 }
 

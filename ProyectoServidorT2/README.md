@@ -1,52 +1,72 @@
-# ProyectoServidorT2
+# ProyectoServidorT2 - Tienda Online
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.0.
+Este proyecto es una aplicación de comercio electrónico desarrollada con **Angular 17+** y **Supabase** como backend (Base de datos y Autenticación).
 
-## Development server
+## Descripción
 
-To start a local development server, run:
+La aplicación permite a los usuarios registrarse, explorar productos, añadirlos al carrito y realizar pedidos. Incluye un panel de administración para gestionar productos, pedidos y usuarios.
 
-```bash
-ng serve
-```
+## Tecnologías
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+*   **Frontend:** Angular 17+ (Standalone Components, Signals, Reactive Forms)
+*   **Backend:** Supabase (PostgreSQL, Auth, Storage)
+*   **Lenguaje:** TypeScript
+*   **Estilos:** SCSS
 
-## Code scaffolding
+## Instalación y Despliegue Local
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+1.  **Clonar el repositorio:**
+    ```bash
+    git clone <url-del-repo>
+    cd ProyectoServidorT2
+    ```
 
-```bash
-ng generate component component-name
-```
+2.  **Instalar dependencias:**
+    ```bash
+    npm install
+    ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+3.  **Configurar variables de entorno:**
+    Crea un archivo o asegúrate de tener `src/environments/environment.ts` con tus credenciales de Supabase:
+    ```typescript
+    export const environment = {
+      supabaseUrl: 'TU_SUPABASE_URL',
+      supabaseKey: 'TU_SUPABASE_ANON_KEY'
+    };
+    ```
 
-```bash
-ng generate --help
-```
+4.  **Ejecutar el servidor de desarrollo:**
+    ```bash
+    ng serve
+    ```
+    Navega a `http://localhost:4200/`.
 
-## Building
+## Cuentas de Prueba
 
-To build the project run:
+Para probar la aplicación puedes usar las siguientes credenciales o registrar un usuario nuevo.
 
-```bash
-ng build
-```
+*   **Administrador:**
+    *   Email: `admin@admin.com`
+    *   Password: `password` (o la que hayas configurado)
+    *   Rol: Tiene acceso completo a /admin/productos, /admin/usuarios, etc.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+*   **Usuario:**
+    *   Email: `user@user.com`
+    *   Password: `password`
+    *   Rol: Puede ver productos y hacer pedidos.
 
-## Running unit tests
+## Estructura del Proyecto
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+*   `src/app/core`: Guardias, Interceptores y Servicios globales (Auth, Storage).
+*   `src/app/features`: Módulos funcionales (Auth, Productos, Admin, Orders).
+*   `src/app/shared`: Componentes reutilizables (Navbar, Alertas).
 
-```bash
-ng test
-```
+## URL de Despliegue
 
-## Running end-to-end tests
+La aplicación está desplegada en: **[TU_URL_VERCEL_NETLIFY]**
 
-For end-to-end (e2e) testing, run:
+---
+Desarrollado para el módulo de Desarrollo Web en Entorno Servidor.
 
 ```bash
 ng e2e

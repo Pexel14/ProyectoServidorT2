@@ -1,0 +1,65 @@
+.filters-panel {
+    display: flex;
+    flex-wrap: nowrap; /* Force single line */
+    gap: 1rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    align-items: flex-end;
+    overflow-x: auto; /* Allow horizontal scroll if screen is too small */
+  
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 120px; /* Slightly reduced min-width */
+  
+      label { 
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        white-space: nowrap; /* Prevent label wrapping */
+      }
+      
+      select, input {
+        padding: 0.6rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        width: 100%;
+        font-size: 0.9rem;
+        
+        &:focus {
+            outline: none;
+            border-color: #3b0764; 
+            box-shadow: 0 0 0 2px rgba(59, 7, 100, 0.1);
+        }
+      }
+    }
+  
+    .filter-actions {
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 2px;
+        flex-shrink: 0; /* Prevent button from shrinking */
+        
+        .btn-clear {
+          padding: 0.6rem 1.2rem;
+          background: #f1f5f9;
+          color: #475569;
+          border: none;
+          border-radius: 6px; 
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+          
+          &:hover { 
+              background: #e2e8f0;
+              color: #1e293b;
+          }
+        }
+    }
+  }

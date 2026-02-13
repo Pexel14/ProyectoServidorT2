@@ -1,0 +1,63 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Editar Pedido #{{ order?.id }}</h2>
+        <button class="close-btn" (click)="close.emit()">&times;</button>
+      </div>
+  
+      <div class="modal-body" *ngIf="order">
+        <!-- User Info -->
+        <div class="user-info-section">
+          <h3>Cliente</h3>
+          <div class="user-card">
+            <img [src]="order.user_avatar" alt="Avatar" class="avatar">
+            <div class="user-details">
+              <p class="name">{{ order.user_name }}</p>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Order Details -->
+        <div class="order-details-section">
+          <h3>Detalles del Pedido</h3>
+          <p><strong>Fecha:</strong> {{ order.created_at | date:'medium' }}</p>
+          <p><strong>Total:</strong> {{ order.total | currency:'EUR' }}</p>
+          <p><strong>Dirección:</strong> {{ order.calle }} {{ order.numero }}, {{ order.ciudad }} ({{ order.codigo_postal }})</p>
+          <div *ngIf="order.observaciones">
+            <p><strong>Observaciones:</strong></p>
+            <p class="notes">{{ order.observaciones }}</p>
+          </div>
+        </div>
+  
+        <!-- Status Edit -->
+        <div class="status-section">
+          <h3>Estado del Pedido</h3>
+          <select [(ngModel)]="selectedStatus" class="form-select">
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+  
+        <div *ngIf="error" class="error-message">
+          {{ error }}
+        </div>
+      </div>
+  
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="close.emit()" [disabled]="loading">Cancelar</button>
+        <button class="btn-save" (click)="save()" [disabled]="loading">
+          {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <app-confirmation-modal
+    *ngIf="showConfirmModal"
+    [isOpen]="true"
+    title="Confirmar cambio de estado"
+    message="¿Estás seguro de cambiar el estado de este pedido a '{{ selectedStatus }}'?"
+    (confirm)="confirmSave()"
+    (cancel)="cancelSave()">
+  </app-confirmation-modal>

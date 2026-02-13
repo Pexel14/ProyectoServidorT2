@@ -17,22 +17,22 @@ export class UserService {
     }
 
     getUsers() {
-        const users = supabase.from('users').select('*')
+        const users = supabase.from('profiles').select('*')
         return users
     }
 
     getUserById(id: string) {
-        const user = supabase.from('users').select('*').eq('id', id).single()
+        const user = supabase.from('profiles').select('*').eq('id', id).single()
         return user
     }
 
-    updateUser(id: string, data: Partial<{ email: string, full_name: string, avatar_url: string }>) {
-        const updatedUser = supabase.from('users').update(data).eq('id', id).single()
+    updateUser(id: string, data: Partial<{ email: string, full_name: string, avatar_url: string | null, role: 'admin' | 'user' }>) {
+        const updatedUser = supabase.from('profiles').update(data).eq('id', id).select().single()
         return updatedUser
     }
 
     deleteUser(id: string) {
-        const deletedUser = supabase.from('users').delete().eq('id', id).single()
+        const deletedUser = supabase.from('profiles').delete().eq('id', id).single()
         return deletedUser
     }
 

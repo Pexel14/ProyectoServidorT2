@@ -1,0 +1,101 @@
+<div class="modal-backdrop" (click)="cancelModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Global Alert -->
+    <app-alert-card
+      [visible]="notificationService.visible()"
+      [message]="notificationService.message()"
+      [type]="notificationService.type()"
+      (dismissed)="notificationService.dismiss()">
+    </app-alert-card>
+
+    <header class="modal-header">
+      <h2>Detalle de Usuario</h2>
+      <button class="btn-close" (click)="cancelModal()" aria-label="Cerrar">&times;</button>
+    </header>
+
+    <div class="modal-body" *ngIf="user">
+      <div class="user-profile-section">
+        <div class="avatar-wrapper">
+            <img [src]="previewUrl || user.avatar_url || 'https://api.dicebear.com/7.x/initials/svg?seed=' + user.email" alt="Avatar" class="avatar-large">
+            
+            <div class="avatar-actions">
+              <label class="btn-upload">
+                Cambiar foto
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
+              </label>
+              
+              <button class="btn-text" (click)="onResetAvatar()" *ngIf="user.avatar_url || previewUrl">
+                  Restablecer
+              </button>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>ID Usuario</label>
+            <input type="text" [value]="user.id" disabled class="input-readonly">
+        </div>
+
+        <!-- Editable Fields -->
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" [(ngModel)]="editedName" placeholder="Nombre completo">
+        </div>
+
+        <div class="form-group">
+            <label>Fecha Registro</label>
+            <span class="info-text">{{ user.created_at | date:'medium' }}</span>
+        </div>
+      </div>
+
+      <div class="user-orders-section">
+        <h3>Historial de Pedidos</h3>
+        <div class="orders-list-container">
+            <div *ngIf="ordersLoading" class="loading-text">Cargando pedidos...</div>
+            <div *ngIf="!ordersLoading && orders.length === 0" class="empty-text">No hay pedidos registrados</div>
+            
+            <table *ngIf="orders.length > 0" class="orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let order of orders">
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.created_at | date:'shortDate' }}</td>
+                        <td>
+                            <span class="status-badge" [class]="order.state?.toLowerCase().replace(' ', '-')">
+                                {{ order.state }}
+                            </span>
+                        </td>
+                        <td>{{ order.total | currency:'EUR' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button class="btn-cancel" (click)="cancelModal()">Cerrar</button>
+      <button class="btn-save" (click)="onSaveProfile()" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+      </button>
+    </footer>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-backdrop confirm-backdrop" *ngIf="showConfirmModal">
+  <div class="confirm-modal">
+    <h3>Confirmar Acción</h3>
+    <p>{{ confirmMessage }}</p>
+    <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancelConfirm()">Cancelar</button>
+        <button class="btn-confirm" (click)="confirmOperation()">Confirmar</button>
+    </div>
+  </div>
+</div>

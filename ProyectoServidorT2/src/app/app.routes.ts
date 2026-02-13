@@ -13,7 +13,7 @@ export const routes: Routes = [
 	{ path: '', redirectTo: 'login', pathMatch: 'full' },
 	{ path: 'login', component: Login },
 	{ path: 'register', component: Register },
-	{ path: 'productos', component: ProductsList, canActivate: [authGuard] },
+	{ path: 'productos', component: ProductsList }, // Public access
     { path: 'pedidos', component: OrdersList, canActivate: [authGuard] },
     { 
         path: 'admin/productos', 

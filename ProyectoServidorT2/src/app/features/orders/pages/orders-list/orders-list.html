@@ -4,32 +4,10 @@
   </div>
 
   <div class="filters-section">
-    <div class="filter-group">
-      <label>Estado</label>
-      <select [(ngModel)]="filters.state" (ngModelChange)="applyFilters()">
-        <option value="">Todos</option>
-        <option *ngFor="let s of states" [value]="s">{{ s }}</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Fecha Desde</label>
-      <input type="date" [(ngModel)]="filters.dateFrom" (ngModelChange)="applyFilters()">
-    </div>
-    <div class="filter-group">
-      <label>Fecha Hasta</label>
-      <input type="date" [(ngModel)]="filters.dateTo" (ngModelChange)="applyFilters()">
-    </div>
-    <div class="filter-group">
-        <label>Precio Mín</label>
-        <input type="number" [(ngModel)]="filters.minPrice" (ngModelChange)="applyFilters()" placeholder="0">
-    </div>
-    <div class="filter-group">
-        <label>Precio Máx</label>
-        <input type="number" [(ngModel)]="filters.maxPrice" (ngModelChange)="applyFilters()" placeholder="Max">
-    </div>
-    <div class="filter-actions">
-        <button class="btn-clear" (click)="clearFilters()">Limpiar</button>
-    </div>
+    <app-order-filters
+      [filters]="filters"
+      (filtersChange)="onFiltersChange($event)">
+    </app-order-filters>
   </div>
 
   <div *ngIf="loading" class="loading-state">
@@ -43,7 +21,7 @@
   </div>
 
   <div class="orders-list" *ngIf="!loading && orders.length > 0">
-    <div class="order-card" *ngFor="let order of orders" (click)="viewOrder(order)">
+    <div class="order-card" *ngFor="let order of orders; trackBy: trackById" (click)="viewOrder(order)">
       <div class="card-header">
         <span class="order-id">#{{ order.id }}</span>
         <span class="order-date">{{ order.created_at | date:'d MMM y' }}</span>

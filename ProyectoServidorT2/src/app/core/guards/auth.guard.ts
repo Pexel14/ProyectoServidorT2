@@ -13,12 +13,17 @@ export const authGuard: CanActivateFn = () => {
 }
 
 export const roleGuard: CanActivateFn = () => {
-    const role = localStorage.getItem('role')
-    const router = inject(Router)
-    if (role !== 'admin') {
-        router.navigate(['/'])
-        return false
-    } else {
-        return true
+    const userStr = localStorage.getItem('user');
+    const router = inject(Router);
+    
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user.role === 'admin') {
+            return true;
+        }
     }
+    
+    // Redirect to home or products if not admin
+    router.navigate(['/productos']);
+    return false;
 }

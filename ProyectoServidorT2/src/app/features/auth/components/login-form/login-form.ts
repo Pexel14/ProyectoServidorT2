@@ -32,12 +32,17 @@ export class LoginForm implements OnChanges {
 
   onLogin() {
     if (this.loginForm.valid) {
-      const { email, password, remember } = this.loginForm.value
+      const { email, password } = this.loginForm.value
       this.authService.login(email, password)
         .then(({ token, user }) => {
           this.authService.setUserSession(token, user)
           this.showAlert('success', 'Inicio de sesion correcto')
-          this.router.navigate(['/productos'])
+          console.log("Usuario" + user.name + " con rol " + user.role + " ha iniciado sesión.")
+          if (user.role === 'admin') {
+            this.router.navigate(['/admin/productos'])
+          } else {
+            this.router.navigate(['/productos'])
+          }
         })
         .catch(err => {
           this.showAlert('error', getErrorMessage(err))

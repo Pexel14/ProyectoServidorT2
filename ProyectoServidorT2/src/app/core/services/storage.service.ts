@@ -15,28 +15,38 @@ export type UploadResponse = {
 
 @Injectable({ providedIn: 'root' })
 export class StorageService {
-    private bucket: string = 'avatars'
+    public readonly BUCKET_AVATARS = 'avatars'
+    public readonly BUCKET_PRODUCTS = 'products'
+    private bucket: string = this.BUCKET_AVATARS
 
-    async uploadFile(file: File, path: string, options: { upsert?: boolean } = {}): Promise<UploadResponse> {
-        const filePath = path ? `${path}/${file.name}` : file.name
+    async uploadFile(file: File, path: string, options: { upsert?: boolean, bucket?: string, fileName?: string } = {}): Promise<UploadResponse> {
+        let fileName = options.fileName ?? file.name;
+        // Sanitize filename to avoid spaces if not provided explicitly
+        if (!options.fileName) {
+            fileName = fileName.replace(/\s+/g, '_');
+        }
+
+        const filePath = path ? `${path}/${fileName}` : fileName;
+        const bucket = options.bucket ?? this.bucket;
         const { data, error } = await supabase.storage
-            .from(this.bucket)
+            .from(bucket)
             .upload(filePath, file, { upsert: options.upsert ?? false })
         
         if (error) {
             throw new Error(error.message)
         }
 
-        const url = this.getPublicUrl(data.path)
+        const url = this.getPublicUrl(data.path, bucket)
         return {
             path: data.path,
             url: url
         }
     }
 
-    async deleteFile(path: string): Promise<void> {
+    async deleteFile(path: string, bucket?: string): Promise<void> {
+        const targetBucket = bucket ?? this.bucket;
         const { error } = await supabase.storage
-            .from(this.bucket)
+            .from(targetBucket)
             .remove([path])
         
         if (error) {
@@ -44,9 +54,10 @@ export class StorageService {
         }
     }
 
-    async listFiles(path: string): Promise<StorageFile[]> {
+    async listFiles(path: string, bucket?: string): Promise<StorageFile[]> {
+        const targetBucket = bucket ?? this.bucket;
         const { data, error } = await supabase.storage
-            .from(this.bucket)
+            .from(targetBucket)
             .list(path)
         
         if (error) {
@@ -61,9 +72,10 @@ export class StorageService {
         }))
     }
 
-    async downloadFile(path: string): Promise<Blob> {
+    async downloadFile(path: string, bucket?: string): Promise<Blob> {
+        const targetBucket = bucket ?? this.bucket;
         const { data, error } = await supabase.storage
-            .from(this.bucket)
+            .from(targetBucket)
             .download(path)
         
         if (error) {
@@ -73,16 +85,17 @@ export class StorageService {
         return data
     }
 
-    getPublicUrl(path: string): string {
+    getPublicUrl(path: string, bucket?: string): string {
+        const targetBucket = bucket ?? this.bucket;
         const { data } = supabase.storage
-            .from(this.bucket)
+            .from(targetBucket)
             .getPublicUrl(path)
         
         return data.publicUrl
     }
 
-    async updateFile(oldPath: string, newFile: File): Promise<UploadResponse> {
-        await this.deleteFile(oldPath)
-        return this.uploadFile(newFile, oldPath.substring(0, oldPath.lastIndexOf('/')))
+    async updateFile(oldPath: string, newFile: File, bucket?: string): Promise<UploadResponse> {
+        await this.deleteFile(oldPath, bucket)
+        return this.uploadFile(newFile, oldPath.substring(0, oldPath.lastIndexOf('/')), { bucket })
     }
 }

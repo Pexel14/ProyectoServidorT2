@@ -1,0 +1,91 @@
+.admin-orders-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    h1 { margin: 0; color: #333; }
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 8px;
+  }
+  
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    th {
+      background: #f1f3f5;
+      font-weight: 600;
+      color: #555;
+    }
+    
+    .client-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      
+      .mini-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+    }
+  
+    .status-badge {
+      display: inline-block;
+      padding: 0.25em 0.75em;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 500;
+  
+      &.status-pending { background: #fff3cd; color: #856404; }
+      &.status-shipping { background: #cce5ff; color: #004085; }
+      &.status-received { background: #d4edda; color: #155724; }
+      &.status-cancelled { background: #f8d7da; color: #721c24; }
+    }
+  
+    .btn-edit {
+        background: #e2e8f0;
+        color: #1e293b;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    
+        &:hover {
+            background: #cbd5e1;
+        }
+    }
+  
+    .no-data {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+    }
+  }
+  
+  .loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }

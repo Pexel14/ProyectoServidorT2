@@ -1,0 +1,79 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="form-container" (click)="$event.stopPropagation()">
+    <header class="form-header">
+      <h2>{{ isEditing ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+      <button class="btn-close" (click)="closeModal()">×</button>
+    </header>
+
+    <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-layout">
+        <!-- Left Column: Image -->
+        <div class="form-column-image">
+            <div class="image-preview">
+                <img [src]="imagePreview" alt="Preview" *ngIf="imagePreview" (error)="onImageError($event)">
+                <div class="placeholder" *ngIf="!imagePreview">
+                    <span>Sin imagen</span>
+                </div>
+            </div>
+            
+            <div class="file-upload-wrapper">
+                <label for="image-file" class="file-label">Cambiar Imagen</label>
+                <input 
+                    id="image-file" 
+                    type="file" 
+                    (change)="onFileSelected($event)" 
+                    accept="image/*"
+                    class="file-input"
+                >
+                <div class="file-upload-display">
+                    <span class="file-name">{{ selectedFile ? selectedFile.name : '' }}</span>
+                </div>
+            </div>
+             <input type="hidden" formControlName="image">
+        </div>
+
+        <!-- Right Column: Inputs -->
+        <div class="form-column-inputs">
+            <div class="form-group compact">
+                <label for="name">Nombre</label>
+                <input id="name" type="text" formControlName="name" placeholder="Ej. Zapatillas">
+                <div class="error-msg" *ngIf="productForm.get('name')?.touched && productForm.get('name')?.invalid">
+                    Requerido
+                </div>
+            </div>
+
+            <div class="form-row compact">
+                <div class="form-group half compact">
+                    <label for="price">Precio (€)</label>
+                    <input id="price" type="number" formControlName="price" min="0" step="0.01">
+                </div>
+
+                <div class="form-group half compact">
+                    <label for="quantity">Stock</label>
+                    <input id="quantity" type="number" formControlName="quantity" min="0">
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn-save" [disabled]="productForm.invalid || loading">
+          {{ loading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear Producto') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-confirmation-modal
+  [isOpen]="showConfirmModal"
+  [title]="isEditing ? 'Confirmar Edición' : 'Confirmar Creación'"
+  [message]="isEditing ? '¿Estás seguro de que deseas guardar los cambios realizados?' : '¿Estás seguro de que deseas crear este nuevo producto?'"
+  (confirm)="confirmSave()"
+  (cancel)="cancelSave()"
+>
+</app-confirmation-modal>

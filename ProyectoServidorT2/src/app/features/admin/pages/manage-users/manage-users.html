@@ -1,0 +1,84 @@
+<div class="manage-users-container">
+  <header class="page-header">
+    <h1>Gestión de Usuarios</h1>
+  </header>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <input 
+        type="text" 
+        placeholder="Buscar por nombre..." 
+        [(ngModel)]="searchTerm"
+        (input)="onFilterChange()"
+        class="search-input"
+      >
+    </div>
+    <div class="filter-group">
+      <label>Desde:</label>
+      <input 
+        type="date" 
+        [(ngModel)]="dateFrom"
+        (change)="onFilterChange()"
+        class="date-input"
+      >
+    </div>
+    <div class="filter-group">
+      <label>Hasta:</label>
+      <input 
+        type="date" 
+        [(ngModel)]="dateTo"
+        (change)="onFilterChange()"
+        class="date-input"
+      >
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Avatar</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Fecha Registro</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>
+            <img [src]="user.avatar_url || 'https://api.dicebear.com/7.x/initials/svg?seed=' + user.email" alt="" class="mini-avatar">
+          </td>
+          <td>{{ user.full_name || 'Sin nombre' }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="role-badge" [class.admin]="user.role === 'admin'">
+              {{ user.role || 'user' }}
+            </span>
+          </td>
+          <td>{{ user.created_at | date:'shortDate' }}</td>
+          <td>
+            <button class="btn-detail" (click)="openEditModal(user)">
+              Ver / Editar
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0 && !loading">
+          <td colspan="6" class="no-data">No se encontraron usuarios</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div *ngIf="loading" class="loading-spinner">
+      Cargando usuarios...
+    </div>
+  </div>
+</div>
+
+<app-user-detail-modal
+  *ngIf="showEditModal && selectedUser"
+  [user]="selectedUser"
+  (close)="closeModal()"
+  (saved)="onModalSaved()">
+</app-user-detail-modal>
