@@ -4,13 +4,6 @@
       <h2>Editar Perfil</h2>
       <button class="close-btn" (click)="close.emit()">&times;</button>
     </div>
-    
-    <app-alert-card 
-      [visible]="alertVisible" 
-      [message]="alertMessage" 
-      [type]="alertType" 
-      (dismissed)="onAlertDismissed()">
-    </app-alert-card>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
@@ -30,7 +23,7 @@
 
       <div class="form-actions">
         <button type="button" class="btn-cancel" (click)="close.emit()">Cancelar</button>
-        <button type="submit" class="btn-save" [disabled]="profileForm.invalid || loading || (alertVisible && alertType === 'success')">
+        <button type="submit" class="btn-save" [disabled]="profileForm.invalid || loading">
           {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
       </div>

@@ -17,7 +17,9 @@ export class UserService {
     }
 
     getUsers() {
-        const users = supabase.from('profiles').select('*')
+        const users = supabase
+            .from('profiles')
+            .select('id, email, full_name, avatar_url, role, updated_at, created_at')
         return users
     }
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationModalComponent } from '../../../../shared/components/confirmation-modal/confirmation-modal';
@@ -12,7 +12,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   templateUrl: './admin-order-edit-modal.html',
   styleUrls: ['./admin-order-edit-modal.scss']
 })
-export class AdminOrderEditModal {
+export class AdminOrderEditModal implements OnInit {
   @Input() order: any;
   @Output() close = new EventEmitter<void>();
   @Output() saved = new EventEmitter<void>();
@@ -21,15 +21,32 @@ export class AdminOrderEditModal {
   statusOptions = ['En espera', 'Cancelado', 'En envio', 'Recibido'];
   showConfirmModal = false;
   loading = false;
+  loadingItems = false;
   error = '';
-  
+  orderItems: any[] = [];
+
   private notificationService = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(private orderService: OrderService) {}
 
   ngOnInit() {
     if (this.order) {
       this.selectedStatus = this.order.state;
+      this.loadOrderItems();
+    }
+  }
+
+  async loadOrderItems() {
+    this.loadingItems = true;
+    try {
+      const full = await this.orderService.getOrderDetails(this.order.id);
+      this.orderItems = full?.items || [];
+    } catch (err) {
+      console.error('Error cargando items del pedido:', err);
+    } finally {
+      this.loadingItems = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -55,9 +72,7 @@ export class AdminOrderEditModal {
     try {
       if (!this.order?.id) throw new Error('ID de pedido no válido');
 
-      console.log('Updating order:', this.order.id, 'to status:', this.selectedStatus);
-      const result = await this.orderService.updateOrderStatus(this.order.id, this.selectedStatus);
-      console.log('Update result:', result);
+      await this.orderService.updateOrderStatus(this.order.id, this.selectedStatus);
 
       this.order.state = this.selectedStatus;
       this.notificationService.show('Estado del pedido actualizado correctamente', 'success');
@@ -70,7 +85,8 @@ export class AdminOrderEditModal {
       this.loading = false;
     }
   }
-    cancelSave() {
-      this.showConfirmModal = false;
-    }
+
+  cancelSave() {
+    this.showConfirmModal = false;
   }
+}

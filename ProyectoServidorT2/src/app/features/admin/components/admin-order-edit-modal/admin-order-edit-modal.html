@@ -29,6 +29,23 @@
           </div>
         </div>
   
+        <!-- Products Section -->
+        <div class="items-section">
+          <h3>Productos del Pedido</h3>
+          <div *ngIf="loadingItems" class="items-loading">Cargando productos...</div>
+          <div *ngIf="!loadingItems && orderItems.length === 0" class="items-empty">Sin productos</div>
+          <div class="items-list" *ngIf="!loadingItems && orderItems.length > 0">
+            <div class="item-row" *ngFor="let item of orderItems">
+              <img [src]="item.product?.imagen || item.product?.image || 'https://placehold.co/50x50?text=Prod'" alt="Producto" class="item-img">
+              <div class="item-info">
+                <span class="item-name">{{ item.product?.nombre || item.product?.name || 'Producto desconocido' }}</span>
+                <span class="item-meta">{{ item.cantidad }}x {{ item.precio_unitario | currency:'EUR' }}</span>
+              </div>
+              <span class="item-total">{{ (item.cantidad * item.precio_unitario) | currency:'EUR' }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Status Edit -->
         <div class="status-section">
           <h3>Estado del Pedido</h3>

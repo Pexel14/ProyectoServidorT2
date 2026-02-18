@@ -49,7 +49,7 @@ export class ManageUsers implements OnInit {
                 this.loading = false;
                 return;
             }
-
+            console.log('Users loaded:', data); // DEBUG
             // Sort client-side
             this.allUsers = (data as User[]).sort((a, b) => {
                 const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;

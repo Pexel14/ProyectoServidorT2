@@ -70,8 +70,11 @@ export class OrderService {
   }
 
   async getOrders(filters?: OrderFilters): Promise<any[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
+    // getSession() reads from local cache first — avoids returning null
+    // while the session is being restored from localStorage on page load.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return [];
+    const user = session.user;
 
     let query = supabase
       .from('Pedidos')
@@ -106,6 +109,7 @@ export class OrderService {
       console.error('Error fetching orders:', error);
       throw error;
     }
+
     return data || [];
   }
 
@@ -158,7 +162,7 @@ export class OrderService {
   async getAllOrders(filters?: OrderFilters): Promise<any[]> {
     let query = supabase
       .from('Pedidos')
-      .select('*, users:id_user ( full_name, avatar_url )');
+      .select('*');
 
     if (filters) {
       if (filters.state) {
@@ -185,11 +189,37 @@ export class OrderService {
        throw error;
     }
 
-    return data.map((order: any) => ({
-      ...order,
-      user_name: order.users?.full_name || 'Usuario desconocido',
-      user_avatar: order.users?.avatar_url || 'https://placehold.co/100x100?text=?',
-    }));
+    const orders = data || [];
+    const userIds = [...new Set(orders.map((order: any) => order.id_user).filter(Boolean))];
+
+    const profilesById = new Map<string, { full_name?: string | null; avatar_url?: string | null }>();
+
+    if (userIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles for orders:', profilesError);
+      } else {
+        (profiles || []).forEach((profile: any) => {
+          profilesById.set(profile.id, {
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url
+          });
+        });
+      }
+    }
+
+    return orders.map((order: any) => {
+      const profile = profilesById.get(order.id_user);
+      return {
+        ...order,
+        user_name: profile?.full_name || 'Usuario desconocido',
+        user_avatar: profile?.avatar_url || 'https://placehold.co/100x100?text=?'
+      };
+    });
   }
 
   async updateOrderStatus(orderId: number, status: string): Promise<void> {

@@ -31,6 +31,16 @@ export class OrderDetailsModalComponent {
     }
   }
 
+  getBadgeClass(state: string): string {
+    if (!state) return '';
+    return state
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+  }
+
   canCancel(state: string): boolean {
     return state === 'En espera';
   }

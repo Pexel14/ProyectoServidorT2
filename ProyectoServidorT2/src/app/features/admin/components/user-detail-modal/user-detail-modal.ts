@@ -103,25 +103,13 @@ export class UserDetailModal implements OnChanges {
 
         if (this.selectedFile) {
           try {
-             // We use the same path convention as in edit-profile-modal
-             // Assuming avatars bucket or similar. StorageService.uploadFile usually handles bucket?
-             // Need to check StorageService impl if it has fixed bucket or assumes prefix.
-             // EditProfileModal used: const path = `${this.user.id}`;
              const timestamp = new Date().getTime();
              const fileExt = this.selectedFile.name.split('.').pop() || 'jpg';
              const fileName = `avatar_${timestamp}.${fileExt}`;
-             const path = `${this.user.id}/${fileName}`;
-             
-             // Or maybe just user ID if single file? 
-             // Let's use user-id/timestamp-filename to avoid cache issues
-             // Previous code in edit-profile-modal used:
-             // const path = `${this.user.id}`;  <-- Wait, that looks like it overwrites a folder or file named ID?
-             // Let's re-read edit-profile-modal context if needed, but safer is:
-             
-             const uploadResponse = await this.storageService.uploadFile(this.selectedFile, this.user.id, { upsert: false }); 
-             // Note: StorageService uploadFile usually takes (file, path). 
-             // If I use user.id as path, it might be the folder or the filename depending on service.
-             // Let's assume it returns { url: string }.
+             const uploadResponse = await this.storageService.uploadFile(this.selectedFile, this.user.id, {
+               upsert: true,
+               fileName
+             });
              
              updateData.avatar_url = uploadResponse.url;
              
@@ -131,18 +119,52 @@ export class UserDetailModal implements OnChanges {
           }
         }
         
-        await this.userService.updateUser(this.user.id, updateData);
+        const { data, error } = await this.userService.updateUser(this.user.id, updateData);
+        if (error) {
+          throw error;
+        }
+
+        this.user = {
+          ...this.user,
+          full_name: data?.full_name ?? updateData.full_name ?? this.user.full_name,
+          avatar_url: data?.avatar_url ?? updateData.avatar_url ?? this.user.avatar_url
+        };
+
+        const currentUserRaw = localStorage.getItem('user');
+        if (currentUserRaw) {
+          const currentUser = JSON.parse(currentUserRaw);
+          if (currentUser?.id === this.user.id) {
+            currentUser.name = this.user.full_name || currentUser.name;
+            currentUser.avatar = this.user.avatar_url || undefined;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            window.dispatchEvent(new CustomEvent('user-profile-updated'));
+          }
+        }
+
         this.notificationService.show('Usuario actualizado correctamente', 'success');
         this.saved.emit();
         this.close.emit();
       } else if (this.confirmAction === 'avatar') {
-        await this.userService.updateUser(this.user.id, {
+        const { error } = await this.userService.updateUser(this.user.id, {
           avatar_url: null // Reset to default
         });
+        if (error) {
+          throw error;
+        }
         this.notificationService.show('Avatar restablecido correctamente', 'success');
         this.saved.emit();
         // Update local state
         this.user.avatar_url = null; 
+
+        const currentUserRaw = localStorage.getItem('user');
+        if (currentUserRaw) {
+          const currentUser = JSON.parse(currentUserRaw);
+          if (currentUser?.id === this.user.id) {
+            currentUser.avatar = undefined;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            window.dispatchEvent(new CustomEvent('user-profile-updated'));
+          }
+        }
       }
     } catch (error) {
       console.error('Operation error', error);

@@ -3,5 +3,13 @@ import { environment } from '../../environments/environment';
 
 export const supabase = createClient(
   environment.supabaseUrl,
-  environment.supabaseKey
+  environment.supabaseKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'sb-session'
+    }
+  }
 );

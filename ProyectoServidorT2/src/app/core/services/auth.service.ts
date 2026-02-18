@@ -1,5 +1,7 @@
-import { Injectable } from "@angular/core"
+import { Injectable, inject } from "@angular/core"
 import { supabase } from "../../lib/supabase"
+import { Router } from '@angular/router';
+import { NotificationService } from './notification.service';
 
 export type AuthUser = {
     id: string,
@@ -18,6 +20,61 @@ export type AuthResponse = {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private user: AuthUser | null = null
+    private router = inject(Router);
+    private notificationService = inject(NotificationService);
+    private isManualLogout = false;
+
+    constructor() {
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                this.user = null;
+                if (!this.isManualLogout) {
+                     this.notificationService.show('Tu sesión ha expirado', 'error');
+                }
+                this.isManualLogout = false; // Reset flag
+                this.router.navigate(['/login']);
+            }
+        });
+
+        // Check initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                // If we are on a protected route, we might want to redirect.
+                // But Guards handle that.
+                // This is mainly to set internal state if needed.
+                this.user = null;
+            } else {
+                 // Set user if valid
+                 this.getCurrentUser();
+            }
+        });
+    }
+
+    /**
+     * Check session validity.
+     * To be called by guards or interceptors.
+     */
+    async checkSession() {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) {
+             this.notificationService.show('Tu sesión ha expirado', 'error');
+             this.logout();
+             return false;
+        }
+        return true;
+    }
+
+
+
+    // Helper to start monitoring session
+    initSessionCheck() {
+       // This checks if the session is valid on app start
+       supabase.auth.getSession().then(({ data: { session } }) => {
+           if (!session) {
+               // No session logic
+           } 
+       });
+    }
 
     /**
      * Registra un nuevo usuario en la aplicación y crea su perfil asociado.
@@ -118,19 +175,34 @@ export class AuthService {
 
         if (!this.user?.id) throw new Error('No user logged in');
 
+        const updatePayload: { full_name: string; avatar_url?: string | null } = {
+            full_name: name
+        };
+
+        if (avatar !== undefined) {
+            updatePayload.avatar_url = avatar;
+        }
+
         // Update profiles table
         const { data, error } = await supabase
             .from('profiles')
-            .update({ full_name: name, avatar_url: avatar })
+            .update(updatePayload)
             .eq('id', this.user.id)
             .select()
             .single();
 
         if (error) throw new Error(error.message);
         
-        // Also update auth metadata for fallback/consistency if needed (optional)
-        await supabase.auth.updateUser({
-            data: { name, avatar_url: avatar }
+        // Optional sync to auth metadata; do not block profile update UX if this fails.
+        const metadataPayload: Record<string, string | undefined> = { name };
+        if (avatar !== undefined) {
+            metadataPayload['avatar_url'] = avatar;
+        }
+
+        supabase.auth.updateUser({
+            data: metadataPayload
+        }).catch((metadataError) => {
+            console.error('Auth metadata sync error:', metadataError);
         });
 
         if (data) {
@@ -140,20 +212,8 @@ export class AuthService {
                 avatar: data.avatar_url,
                 role: data.role // Ensure role is preserved/updated
             };
-            // Ensure created_at dates are respected if present in existing object, 
-            // though user update return from profiles table might not have it unless selected.
-            // But we spread ...this.user first, so it should be fine.
-            
-            const currentToken = localStorage.getItem('sb-access-token'); // Check key usage in project
-            if (currentToken) {
-                // We use 'token' or 'sb-access-token'? 
-                // Previous code had: localStorage.getItem('token'); and this.setUserSession.
-                // But logout clears 'sb-access-token'. Need to be consistent.
-                // The setUserSession method in this file (which I plan to read/keep) handles keys.
-                // Let's rely on `this.setUserSession` logic if I can see it.
-                // I will assume 'user' key is used for user object.
-                localStorage.setItem('user', JSON.stringify(this.user));
-            }
+
+            localStorage.setItem('user', JSON.stringify(this.user));
             return this.user;
         }
         throw new Error('No user updated');
@@ -164,11 +224,14 @@ export class AuthService {
      * Cierra la sesión del usuario actual y limpia el estado local.
      */
     async logout() {
+        this.isManualLogout = true;
         const { error } = await supabase.auth.signOut()
         if (error) {
-            throw new Error(error.message)
+            console.error('Logout error', error);
         }
-        this.user = null
+        this.user = null;
+        // Navigation is handled by onAuthStateChange, but we can force it here too just in case
+        this.router.navigate(['/login']);
     }
 
     /**
@@ -224,6 +287,8 @@ export class AuthService {
             avatar: profile?.avatar_url || authData.user.user_metadata['avatar_url'],
             created_at: authData.user.created_at
         }
+
+        localStorage.setItem('user', JSON.stringify(this.user))
         return this.user
     }
 

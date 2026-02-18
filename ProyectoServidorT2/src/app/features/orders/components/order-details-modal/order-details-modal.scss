@@ -66,20 +66,36 @@
     text-transform: capitalize;
     margin-top: 0.5rem;
     align-self: flex-start;
-    
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+
+    // Amarillo — En espera
     &.en-espera, &.pendiente {
-        background-color: #fef3c7;
-        color: #d97706;
-    }
-    
-    &.cancelado {
-        background-color: #fee2e2;
-        color: #ef4444;
+        background-color: #fefce8;
+        color: #a16207;
+        border-color: #fde047;
     }
 
-    &.completado {
-        background-color: #d1fae5;
-        color: #059669;
+    // Azul — Enviado
+    &.enviado, &.en-envio {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        border-color: #93c5fd;
+    }
+
+    // Verde — Entregado / Recibido
+    &.entregado, &.recibido, &.completado {
+        background-color: #f0fdf4;
+        color: #15803d;
+        border-color: #86efac;
+    }
+
+    // Rojo — Cancelado
+    &.cancelado {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border-color: #fca5a5;
     }
 }
 

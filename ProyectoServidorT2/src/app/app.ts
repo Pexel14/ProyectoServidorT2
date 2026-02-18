@@ -3,6 +3,7 @@ import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Navbar } from './shared/components/navbar/navbar';
 import { AlertCard } from './shared/components/alert-card/alert-card';
+import { AuthService } from './core/services/auth.service';
 import { filter } from 'rxjs/operators';
 import { NotificationService } from './core/services/notification.service';
 
@@ -16,6 +17,8 @@ export class App {
   protected readonly title = signal('ProyectoServidorT2');
   protected showNavbar = signal(false);
   notificationService = inject(NotificationService);
+  // Inject AuthService to start session monitoring immediately
+  authService = inject(AuthService);
 
   constructor(private router: Router) {
     this.router.events.pipe(

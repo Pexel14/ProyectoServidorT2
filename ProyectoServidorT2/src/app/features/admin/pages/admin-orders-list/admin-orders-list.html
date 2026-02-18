@@ -25,8 +25,8 @@
           <td>#{{ order.id }}</td>
           <td>
             <div class="client-cell">
-              <img [src]="order.user_avatar" alt="" class="mini-avatar">
-              <span>{{ order.user_name }}</span>
+              <img [src]="order.user_avatar" [alt]="order.user_name || 'Usuario'" class="mini-avatar">
+              <span>{{ order.user_name || 'Usuario desconocido' }}</span>
             </div>
           </td>
           <td>{{ order.created_at | date:'short' }}</td>

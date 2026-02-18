@@ -178,10 +178,37 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    
-    &.en-espera, &.pendiente { background-color: #fef3c7; color: #b45309; }
-    &.cancelado { background-color: #fee2e2; color: #ef4444; }
-    &.completado { background-color: #d1fae5; color: #059669; }
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+
+    // Amarillo — En espera
+    &.en-espera, &.pendiente {
+        background-color: #fefce8;
+        color: #a16207;
+        border: 1px solid #fde047;
+    }
+
+    // Azul — Enviado / En envío
+    &.enviado, &.en-envio, &.en-envío {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #93c5fd;
+    }
+
+    // Verde — Entregado / Recibido
+    &.entregado, &.recibido, &.completado {
+        background-color: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #86efac;
+    }
+
+    // Rojo — Cancelado
+    &.cancelado {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+    }
 }
 
 @media(max-width: 640px) {

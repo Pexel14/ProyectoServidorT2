@@ -3,6 +3,8 @@
         <h1 class="login-title">Iniciar Sesión</h1>
 
         <app-login-form [prefilledEmail]="email"></app-login-form>
+
+        <button type="button" class="guest-btn" (click)="enterAsGuest()">Entrar como invitado</button>
         
         <div class="login-footer">
             <p class="login-text">¿No tienes cuenta? <a routerLink="/register" class="login-link">Regístrate</a></p>

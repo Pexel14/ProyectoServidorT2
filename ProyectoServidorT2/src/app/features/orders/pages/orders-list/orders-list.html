@@ -29,18 +29,18 @@
       
       <div class="card-body">
         <div class="info-row">
-            <span class="label">Total:</span> 
-            <span class="value total">{{ order.total | currency:'EUR' }}</span>
+          <span class="label">Total:</span> 
+          <span class="value total">{{ order.total | currency:'EUR' }}</span>
         </div>
         <div class="info-row status-row">
-            <span class="status-badge" [ngClass]="getBadgeClass(order.state)">
-                {{ order.state }}
-            </span>
+          <span class="status-badge" [ngClass]="getBadgeClass(order.state)">
+            {{ order.state }}
+          </span>
         </div>
       </div>
       
       <div class="card-footer">
-          <span class="view-details">Ver detalles →</span>
+        <span class="view-details">Ver detalles →</span>
       </div>
     </div>
   </div>

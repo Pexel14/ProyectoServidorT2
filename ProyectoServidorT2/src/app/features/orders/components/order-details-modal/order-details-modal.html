@@ -4,7 +4,7 @@
       <div class="header-info">
         <h2>Pedido #{{ order.id }}</h2>
         <span class="order-date">{{ order.created_at | date:'d MMM y, H:mm' }}</span>
-        <span class="status-badge" [class]="order.state?.toLowerCase().replace(' ', '-')">{{ order.state }}</span>
+        <span class="status-badge" [ngClass]="getBadgeClass(order.state)">{{ order.state }}</span>
       </div>
       <button class="close-btn" (click)="onCloseRequest()">&times;</button>
     </div>
@@ -27,9 +27,9 @@
         <div class="items-list" *ngIf="order.items">
           <div class="item" *ngFor="let item of order.items">
             <!-- Checking product fields safely -->
-            <img [src]="item.product?.image || 'assets/placeholder.png'" alt="Sin imagen" class="item-img">
+            <img [src]="item.product?.imagen || item.product?.image || 'https://placehold.co/50x50?text=Prod'" alt="Sin imagen" class="item-img">
             <div class="item-info">
-              <span class="item-name">{{ item.product?.name || 'Producto desconocido' }}</span>
+              <span class="item-name">{{ item.product?.nombre || item.product?.name || 'Producto desconocido' }}</span>
               <div class="item-meta">
                 <span>{{ item.cantidad }}x {{ item.precio_unitario | currency:'EUR' }}</span>
               </div>

@@ -13,6 +13,11 @@ export class CartService {
   private notificationService = inject(NotificationService);
   cartItems = signal<CartItem[]>(this.loadFromStorage());
 
+  private hasAuthenticatedSession(): boolean {
+    const token = localStorage.getItem('token');
+    return !!token;
+  }
+
   constructor() {
     effect(() => {
       localStorage.setItem('cart', JSON.stringify(this.cartItems()));
@@ -39,6 +44,11 @@ export class CartService {
   }
 
   addToCart(product: Product) {
+    if (!this.hasAuthenticatedSession()) {
+      this.notificationService.show('Debes iniciar sesión para añadir productos al carrito', 'error');
+      return;
+    }
+
     this.cartItems.update(items => {
       const existingItem = items.find(item => item.id === product.id);
       if (existingItem) {

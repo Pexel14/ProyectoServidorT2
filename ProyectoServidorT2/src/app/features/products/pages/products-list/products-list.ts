@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
@@ -15,23 +15,22 @@ export class ProductsList implements OnInit {
   products: Product[] = [];
   loading = true;
 
-  constructor(
-    private productService: ProductService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private productService = inject(ProductService);
+  private cdr = inject(ChangeDetectorRef);
 
-  async ngOnInit() {
+  ngOnInit() {
+    this.loadProducts();
+  }
+
+  async loadProducts() {
+    this.loading = true;
     try {
-      console.log('Iniciando carga de productos...');
-      const data = await this.productService.getProducts();
-      console.log('Productos recibidos en componente:', data);
-      this.products = data;
+      this.products = await this.productService.getProducts();
     } catch (error) {
-      console.error('Error en ngOnInit:', error);
+      console.error('Error cargando productos:', error);
     } finally {
-      console.log('Finalizando carga...');
       this.loading = false;
-      this.cdr.detectChanges(); // Forzar detección de cambios si Angular "se duerme"
+      this.cdr.detectChanges();
     }
   }
 }

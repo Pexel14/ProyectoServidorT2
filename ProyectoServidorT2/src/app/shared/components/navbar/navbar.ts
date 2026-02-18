@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { CartService } from '../../../features/products/services/cart.service';
@@ -18,7 +18,7 @@ type NavItem = {
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar implements OnInit {
+export class Navbar implements OnInit, OnDestroy {
   cartService = inject(CartService);
   authService = inject(AuthService);
   menuOpen = false;
@@ -37,6 +37,9 @@ export class Navbar implements OnInit {
   showEditProfileModal = false;
 
   private router = inject(Router);
+  private profileUpdatedHandler = () => {
+    this.refreshCurrentUserFromDb();
+  };
 
   ngOnInit(): void {
     // Check initial user from localStorage or Service
@@ -69,6 +72,13 @@ export class Navbar implements OnInit {
 
     // Initial check
     this.updateCartVisibility(this.router.url);
+
+    this.refreshCurrentUserFromDb();
+    window.addEventListener('user-profile-updated', this.profileUpdatedHandler);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('user-profile-updated', this.profileUpdatedHandler);
   }
 
   updateUserFromStorage(user: AuthUser) {
@@ -117,6 +127,8 @@ export class Navbar implements OnInit {
   openEditProfile(): void {
     this.isUserMenuOpen = false;
     this.showEditProfileModal = true;
+    // Refresh user data in background so modal gets fresh info
+    this.refreshCurrentUserFromDb();
   }
 
   closeEditProfile(): void {
@@ -129,6 +141,7 @@ export class Navbar implements OnInit {
     this.userInitials = this.getInitials(updatedUser.name);
     this.avatarUrl = updatedUser.avatar;
     this.role = updatedUser.role;
+    this.refreshCurrentUserFromDb();
   }
 
   async logout() {
@@ -181,6 +194,10 @@ export class Navbar implements OnInit {
   }
 
   private getInitials(name: string): string {
+    if (!name) {
+      return 'US';
+    }
+
     const parts = name.trim().split(' ').filter(Boolean);
     if (!parts.length) {
       return 'US';
@@ -188,6 +205,13 @@ export class Navbar implements OnInit {
     const first = parts[0][0] || '';
     const last = parts.length > 1 ? parts[parts.length - 1][0] || '' : '';
     return (first + last).toUpperCase();
+  }
+
+  private async refreshCurrentUserFromDb(): Promise<void> {
+    const user = await this.authService.getCurrentUser();
+    if (user) {
+      this.updateUserFromStorage(user);
+    }
   }
 
 }

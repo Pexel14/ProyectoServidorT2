@@ -1,14 +1,14 @@
-import { Component, EventEmitter, Input, Output, inject, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, inject, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthUser, AuthService } from '../../../core/services/auth.service';
 import { StorageService } from '../../../core/services/storage.service';
-import { AlertCard, AlertType } from '../alert-card/alert-card';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-edit-profile-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AlertCard],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './edit-profile-modal.html',
   styleUrl: './edit-profile-modal.scss'
 })
@@ -23,13 +23,11 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
   previewUrl: string | null = null;
   selectedFile: File | null = null;
   
-  alertVisible = false;
-  alertMessage: string | null = null;
-  alertType: AlertType = 'success';
-  
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private storageService = inject(StorageService);
+  private notificationService = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -47,7 +45,6 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
     }
     if (changes['isOpen'] && !this.isOpen) {
         this.selectedFile = null;
-        this.resetAlert();
     }
     if (changes['isOpen'] && this.isOpen && this.user) {
         this.updateForm();
@@ -79,24 +76,16 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
       const reader = new FileReader();
       reader.onload = (e) => {
         this.previewUrl = e.target?.result as string;
+        // FileReader runs outside Angular zone; force change detection
+        this.cdr.detectChanges();
       };
       reader.readAsDataURL(file);
     }
   }
   
-  onAlertDismissed() {
-    this.alertVisible = false;
-  }
-  
-  resetAlert() {
-    this.alertVisible = false;
-    this.alertMessage = null;
-  }
-
   async onSubmit() {
-    if (this.profileForm.valid) {
+    if (this.profileForm.valid && !this.loading) {
       this.loading = true;
-      this.resetAlert();
       
       try {
         const { name } = this.profileForm.value;
@@ -106,31 +95,35 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
           const timestamp = new Date().getTime();
           const fileExt = this.selectedFile.name.split('.').pop() || 'jpg';
           const fileName = `avatar_${timestamp}.${fileExt}`;
-          const newFile = new File([this.selectedFile], fileName, { type: this.selectedFile.type });
-          
           const path = `${this.user.id}`;
-          
-          const uploadResponse = await this.storageService.uploadFile(newFile, path, { upsert: false });
-          avatarUrl = uploadResponse.url;
+
+          // upsert:true so re-uploading an avatar to the same path never errors
+          const uploadResponse = await this.storageService.uploadFile(this.selectedFile, path, {
+            upsert: true,
+            fileName
+          });
+          // Add cache-busting query param so browser always shows the new image
+          avatarUrl = uploadResponse.url + '?t=' + Date.now();
         }
 
         const updatedUser = await this.authService.updateProfile(name, avatarUrl);
-        
-        this.alertType = 'success';
-        this.alertMessage = 'Perfil actualizado correctamente';
-        this.alertVisible = true;
-        
-        this.save.emit(updatedUser);
-        
-        setTimeout(() => {
-            this.close.emit();
-        }, 1500);
+
+        this.notificationService.show('Perfil actualizado correctamente', 'success');
+
+        // Close first to avoid getting stuck if any parent listener throws.
+        this.close.emit();
+
+        try {
+          this.save.emit(updatedUser);
+        } catch (emitError) {
+          console.error('Error propagating profile update event', emitError);
+        }
+
+        window.dispatchEvent(new CustomEvent('user-profile-updated'));
         
       } catch (error: any) {
         console.error(error);
-        this.alertType = 'error';
-        this.alertMessage = error.message || 'Error al actualizar el perfil';
-        this.alertVisible = true;
+        this.notificationService.show(error.message || 'Error al actualizar el perfil', 'error');
       } finally {
         this.loading = false;
       }
