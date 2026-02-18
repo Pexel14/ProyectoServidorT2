@@ -1,8 +1,6 @@
 [build]
-  base = "ProyectoServidorT2"
-  command = "npm run build"
-  publish = "dist/ProyectoServidorT2/browser"
-
+  command = "cd ProyectoServidorT2 && npm install && npm run build"
+  publish = "ProyectoServidorT2/dist/ProyectoServidorT2/browser"
 [[redirects]]
   from = "/*"
   to = "/index.html"
