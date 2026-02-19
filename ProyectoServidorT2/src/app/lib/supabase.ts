@@ -5,6 +5,7 @@ const debugLock = {
   acquire: async () => {
     return () => {};
   },
+
   release: async () => {},
   update: async () => {}
 };
@@ -18,7 +19,7 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storageKey: 'sb-session',
-      lock: debugLock 
+      lock: debugLock as any 
     }
   }
 );
