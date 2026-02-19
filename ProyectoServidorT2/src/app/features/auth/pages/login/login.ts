@@ -3,6 +3,8 @@ import { LoginForm } from "../../components/login-form/login-form";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Router } from '@angular/router';
 import { supabase } from '../../../../lib/supabase';
+import { authGuard } from '../../../../core/guards/auth.guard';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -16,10 +18,15 @@ export class Login implements OnInit {
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(async params => {
       if (params['email']) {
         this.email = params['email'];
       }
+    await supabase.auth.signOut();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('sb-access-token');
+    localStorage.removeItem('sb-refresh-token');
     });
   }
 
