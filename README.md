@@ -40,7 +40,7 @@ Permite a los usuarios registrarse, explorar el catálogo de productos, añadirl
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repo>
+git clone https://github.com/Pexel14/ProyectoServidorT2.git
 cd ProyectoServidorT2
 ```
 
@@ -48,6 +48,8 @@ cd ProyectoServidorT2
 
 ```bash
 npm install
+
+npm install @supabase/supabase-js
 ```
 
 ### 3. Configurar variables de entorno
