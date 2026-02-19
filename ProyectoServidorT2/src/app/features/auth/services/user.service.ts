@@ -19,7 +19,7 @@ export class UserService {
     getUsers() {
         const users = supabase
             .from('profiles')
-            .select('id, email, full_name, avatar_url, role, updated_at, created_at')
+            .select('id, email, full_name, avatar_url, role, created_at')
         return users
     }
 

@@ -37,6 +37,7 @@ export class Navbar implements OnInit, OnDestroy {
   showEditProfileModal = false;
 
   private router = inject(Router);
+  private authStateUnsubscribe: (() => void) | null = null;
   private profileUpdatedHandler = () => {
     this.refreshCurrentUserFromDb();
   };
@@ -51,7 +52,7 @@ export class Navbar implements OnInit, OnDestroy {
     }
 
     // Subscribe to Auth Changes
-    this.authService.onAuthStateChange((user) => {
+    this.authStateUnsubscribe = this.authService.onAuthStateChange((user) => {
         if (user) {
             this.updateUserFromStorage(user);
         } else {
@@ -78,6 +79,7 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.authStateUnsubscribe?.();
     window.removeEventListener('user-profile-updated', this.profileUpdatedHandler);
   }
 

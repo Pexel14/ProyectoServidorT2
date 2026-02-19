@@ -24,20 +24,65 @@ export class AuthService {
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private isManualLogout = false;
+    private authCallbacks = new Set<(user: AuthUser | null) => void>();
 
     constructor() {
-        // Escucha de cambios de estado segura
-        supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            if (session?.user) {
-                await this.updateLocalUserState(session);
-            }
-
-            if (event === 'SIGNED_OUT') {
-                this.handleLogoutCleanup();
-            }
+        supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+            void this.processAuthStateChange(event, session);
         });
 
-        this.initSession();
+        void this.initSession();
+    }
+
+    private async processAuthStateChange(event: AuthChangeEvent, session: Session | null) {
+        if (event === 'SIGNED_OUT') {
+            this.handleLogoutCleanup();
+            return;
+        }
+
+        if (session?.user) {
+            await this.updateLocalUserState(session);
+            this.notifyAuthCallbacks(this.user);
+            return;
+        }
+    }
+
+    private notifyAuthCallbacks(user: AuthUser | null) {
+        this.authCallbacks.forEach((callback) => {
+            try {
+                callback(user);
+            } catch (error) {
+                console.error('Error en callback de auth:', error);
+            }
+        });
+    }
+
+    private clearLocalSession() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+    }
+
+    private clearSupabasePersistedSession() {
+        localStorage.removeItem('sb-session');
+        localStorage.removeItem('sb-access-token');
+        localStorage.removeItem('sb-refresh-token');
+
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+    }
+
+    private clearAllLocalSession() {
+        this.clearLocalSession();
+        this.clearSupabasePersistedSession();
     }
 
     private async initSession() {
@@ -78,13 +123,20 @@ export class AuthService {
 
     private handleLogoutCleanup() {
         this.user = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        this.clearAllLocalSession();
+        this.notifyAuthCallbacks(null);
         if (!this.isManualLogout) {
             this.notificationService.show('Tu sesión ha expirado', 'error');
         }
+
+        const publicRoutes = ['/login', '/register', '/productos', '/not-found', '/'];
+        const currentPath = (this.router.url || '/').split('?')[0];
+        const isPublicRoute = publicRoutes.some(route => currentPath === route || currentPath.startsWith(route + '/'));
+
         this.isManualLogout = false;
-        this.router.navigate(['/login']);
+        if (!isPublicRoute) {
+            this.router.navigate(['/login']);
+        }
     }
 
     /**
@@ -94,8 +146,27 @@ export class AuthService {
     async checkSession(): Promise<boolean> {
         try {
             const { data } = await supabase.auth.getSession();
-            return !!(data && data.session);
+            if (data?.session) {
+                return true;
+            }
+
+            try {
+                const { data: refreshed } = await supabase.auth.refreshSession();
+                if (refreshed?.session) {
+                    return true;
+                }
+            } catch {
+            }
+
+            const { data: userData, error } = await supabase.auth.getUser();
+            if (!error && userData?.user) {
+                return true;
+            }
+
+            this.clearLocalSession();
+            return false;
         } catch {
+            this.clearLocalSession();
             return false;
         }
     }
@@ -165,6 +236,8 @@ export class AuthService {
      * @throws Error si las credenciales son incorrectas o Supabase falla.
      */
     async login(email: string, password: string): Promise<AuthResponse> {
+        await this.clearSessionForLogin();
+
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw new Error(error.message);
 
@@ -183,8 +256,7 @@ export class AuthService {
             created_at: data.user.created_at
         };
 
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        this.clearLocalSession();
         this.setUserSession(data.session?.access_token || '', this.user);
 
         return {
@@ -240,9 +312,23 @@ export class AuthService {
         this.isManualLogout = true;
         await supabase.auth.signOut();
         this.user = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        this.clearAllLocalSession();
+        this.notifyAuthCallbacks(null);
         this.router.navigate(['/login']);
+    }
+
+    async clearSessionForLogin(): Promise<void> {
+        this.isManualLogout = true;
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.warn('No se pudo cerrar la sesión previa antes del login:', error);
+        } finally {
+            this.user = null;
+            this.clearAllLocalSession();
+            this.notifyAuthCallbacks(null);
+            this.isManualLogout = false;
+        }
     }
 
     /**
@@ -250,29 +336,12 @@ export class AuthService {
      * Se invoca al iniciar sesión, cerrar sesión o refrescar el token.
      * @param callback - Función que recibe el `AuthUser` actualizado o `null` si no hay sesión.
      */
-    onAuthStateChange(callback: (user: AuthUser | null) => void) {
-        supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            if (session?.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-
-                this.user = {
-                    id: session.user.id,
-                    name: profile?.full_name || session.user.user_metadata['name'] || '',
-                    email: session.user.email || '',
-                    role: profile?.role || 'user',
-                    avatar: profile?.avatar_url || session.user.user_metadata['avatar_url'],
-                    created_at: session.user.created_at
-                };
-                callback(this.user);
-            } else {
-                this.user = null;
-                callback(null);
-            }
-        });
+    onAuthStateChange(callback: (user: AuthUser | null) => void): () => void {
+        this.authCallbacks.add(callback);
+        callback(this.user);
+        return () => {
+            this.authCallbacks.delete(callback);
+        };
     }
 
     /**

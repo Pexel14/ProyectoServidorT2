@@ -10,16 +10,16 @@ import { AuthService } from "../services/auth.service";
  * @returns `true` si hay sesión activa, `false` (+ redirección) en caso contrario.
  */
 export const authGuard: CanActivateFn = () => {
-    const auth = localStorage.getItem('token')
     const router = inject(Router)
     const authService = inject(AuthService)
 
-    if (!auth) {
-        router.navigate(['/login'])
-        return false
-    }
-
-    return authService.checkSession();
+    return authService.checkSession().then((hasSession) => {
+        if (!hasSession) {
+            router.navigate(['/login']);
+            return false;
+        }
+        return true;
+    });
 }
 
 /**

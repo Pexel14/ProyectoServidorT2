@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { LoginForm } from "../../components/login-form/login-form";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Router } from '@angular/router';
-import { supabase } from '../../../../lib/supabase';
-import { authGuard } from '../../../../core/guards/auth.guard';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -15,27 +13,24 @@ import { AuthService } from '../../../../core/services/auth.service';
 export class Login implements OnInit {
   email: string | null = null;
 
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.route.queryParams.subscribe(async params => {
       if (params['email']) {
         this.email = params['email'];
       }
-    await supabase.auth.signOut();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('sb-access-token');
-    localStorage.removeItem('sb-refresh-token');
     });
+
+    void this.authService.clearSessionForLogin();
   }
 
   async enterAsGuest(): Promise<void> {
-    await supabase.auth.signOut();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('sb-access-token');
-    localStorage.removeItem('sb-refresh-token');
+    await this.authService.clearSessionForLogin();
     this.router.navigate(['/productos']);
   }
 }

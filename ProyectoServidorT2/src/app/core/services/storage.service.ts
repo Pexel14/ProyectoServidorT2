@@ -64,7 +64,7 @@ export class StorageService {
             throw new Error(error.message)
         }
 
-        return data.map(file => ({
+        return data.map((file: any) => ({
             name: file.name,
             id: file.id,
             updated_at: file.updated_at,

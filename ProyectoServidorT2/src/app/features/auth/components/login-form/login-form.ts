@@ -35,7 +35,6 @@ export class LoginForm implements OnChanges {
       const { email, password } = this.loginForm.value
       this.authService.login(email, password)
         .then(({ token, user }) => {
-          this.authService.setUserSession(token, user)
           this.showAlert('success', 'Inicio de sesion correcto')
           console.log("Usuario" + user.name + " con rol " + user.role + " ha iniciado sesión.")
           if (user.role === 'admin') {

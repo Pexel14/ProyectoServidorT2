@@ -13,6 +13,9 @@ import { NotificationService } from '../../../core/services/notification.service
   styleUrl: './edit-profile-modal.scss'
 })
 export class EditProfileModalComponent implements OnInit, OnChanges {
+  private readonly MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+  private readonly REQUEST_TIMEOUT_MS = 20000;
+
   @Input() isOpen = false;
   @Input() user: AuthUser | null = null;
   @Output() close = new EventEmitter<void>();
@@ -71,6 +74,21 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+
+      if (!file.type.startsWith('image/')) {
+        this.notificationService.show('Selecciona un archivo de imagen válido', 'error');
+        input.value = '';
+        this.selectedFile = null;
+        return;
+      }
+
+      if (file.size > this.MAX_IMAGE_SIZE_BYTES) {
+        this.notificationService.show('La imagen supera el tamaño máximo de 5MB', 'error');
+        input.value = '';
+        this.selectedFile = null;
+        return;
+      }
+
       this.selectedFile = file;
 
       const reader = new FileReader();
@@ -81,6 +99,13 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), timeoutMs))
+    ]);
   }
   
   async onSubmit() {
@@ -98,15 +123,23 @@ export class EditProfileModalComponent implements OnInit, OnChanges {
           const path = `${this.user.id}`;
 
           // upsert:true so re-uploading an avatar to the same path never errors
-          const uploadResponse = await this.storageService.uploadFile(this.selectedFile, path, {
-            upsert: true,
-            fileName
-          });
+          const uploadResponse = await this.withTimeout(
+            this.storageService.uploadFile(this.selectedFile, path, {
+              upsert: true,
+              fileName
+            }),
+            this.REQUEST_TIMEOUT_MS,
+            'La subida de imagen tardó demasiado. Inténtalo de nuevo.'
+          );
           // Add cache-busting query param so browser always shows the new image
           avatarUrl = uploadResponse.url + '?t=' + Date.now();
         }
 
-        const updatedUser = await this.authService.updateProfile(name, avatarUrl);
+        const updatedUser = await this.withTimeout(
+          this.authService.updateProfile(name, avatarUrl),
+          this.REQUEST_TIMEOUT_MS,
+          'La actualización del perfil tardó demasiado. Inténtalo de nuevo.'
+        );
 
         this.notificationService.show('Perfil actualizado correctamente', 'success');
 
