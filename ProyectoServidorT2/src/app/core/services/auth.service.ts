@@ -79,12 +79,17 @@ export class AuthService {
     }
 
     async checkSession(): Promise<boolean> {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) {
-            this.user = null;
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                this.user = null;
+                return false;
+            }
+            return true;
+        } catch (err) {
+            console.error('Error crítico comprobando sesión:', err);
             return false;
         }
-        return true;
     }
 
     async register(email: string, password: string, name: string | null = null): Promise<AuthResponse> {
