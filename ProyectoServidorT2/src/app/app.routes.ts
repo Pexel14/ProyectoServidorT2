@@ -30,5 +30,6 @@ export const routes: Routes = [
         component: ManageUsers, 
         canActivate: [authGuard, roleGuard] 
     },
-	{ path: '**', component: NotFound },
+	{ path: 'not-found', component: NotFound },
+	{ path: '**', redirectTo: 'not-found' },
 ];

@@ -26,7 +26,7 @@ export class App {
     ).subscribe((event: any) => {
       const url = event.urlAfterRedirects || event.url;
       const path = url.split('?')[0];
-      const isHidden = ['/login', '/register', '/'].some(route => path === route || path.startsWith(route + '/'));
+      const isHidden = ['/login', '/register', '/not-found', '/'].some(route => path === route || path.startsWith(route + '/'));
       this.showNavbar.set(!isHidden);
     });
   }

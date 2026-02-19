@@ -87,6 +87,10 @@ export class AuthService {
         this.router.navigate(['/login']);
     }
 
+    /**
+     * Verifica si existe una sesión activa en Supabase.
+     * @returns `true` si hay sesión válida, `false` en caso contrario.
+     */
     async checkSession(): Promise<boolean> {
         try {
             const { data } = await supabase.auth.getSession();
@@ -96,6 +100,22 @@ export class AuthService {
         }
     }
 
+    /**
+     * Alias de `checkSession()`. Comprueba si el usuario está autenticado.
+     * @returns `true` si hay sesión activa, `false` en caso contrario.
+     */
+    async isAuthenticated(): Promise<boolean> {
+        return this.checkSession();
+    }
+
+    /**
+     * Registra un nuevo usuario en Supabase Auth y crea su perfil en la tabla `profiles`.
+     * @param email - Correo electrónico del usuario.
+     * @param password - Contraseña (mínimo 6 caracteres).
+     * @param name - Nombre opcional. Si se omite, se deduce del email.
+     * @returns `AuthResponse` con el token JWT y los datos del usuario creado.
+     * @throws Error si Supabase devuelve un error de registro.
+     */
     async register(email: string, password: string, name: string | null = null): Promise<AuthResponse> {
         const { data, error } = await supabase.auth.signUp({ 
             email, 
@@ -136,6 +156,14 @@ export class AuthService {
         };
     }
 
+    /**
+     * Autentica al usuario contra Supabase Auth.
+     * Recupera el perfil de la tabla `profiles` y almacena el token en localStorage.
+     * @param email - Correo electrónico del usuario.
+     * @param password - Contraseña del usuario.
+     * @returns `AuthResponse` con el token JWT y los datos del usuario autenticado.
+     * @throws Error si las credenciales son incorrectas o Supabase falla.
+     */
     async login(email: string, password: string): Promise<AuthResponse> {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw new Error(error.message);
@@ -154,7 +182,9 @@ export class AuthService {
             avatar: profile?.avatar_url || data.user.user_metadata['avatar_url'],
             created_at: data.user.created_at
         };
-        
+
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         this.setUserSession(data.session?.access_token || '', this.user);
 
         return {
@@ -163,6 +193,14 @@ export class AuthService {
         };
     }
 
+    /**
+     * Actualiza el nombre y/o avatar del usuario autenticado.
+     * Modifica tanto la tabla `profiles` como los metadatos de Supabase Auth.
+     * @param name - Nuevo nombre completo del usuario.
+     * @param avatar - URL pública del nuevo avatar (opcional).
+     * @returns `AuthUser` actualizado con los nuevos datos.
+     * @throws Error si no hay usuario autenticado o falla la actualización en BD.
+     */
     async updateProfile(name: string, avatar?: string): Promise<AuthUser> {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('No user logged in');
@@ -194,6 +232,10 @@ export class AuthService {
         return this.user;
     }
 
+    /**
+     * Cierra la sesión del usuario en Supabase y limpia el localStorage.
+     * Redirige automáticamente a `/login`.
+     */
     async logout() {
         this.isManualLogout = true;
         await supabase.auth.signOut();
@@ -203,6 +245,11 @@ export class AuthService {
         this.router.navigate(['/login']);
     }
 
+    /**
+     * Suscribe un callback a los cambios de estado de autenticación de Supabase.
+     * Se invoca al iniciar sesión, cerrar sesión o refrescar el token.
+     * @param callback - Función que recibe el `AuthUser` actualizado o `null` si no hay sesión.
+     */
     onAuthStateChange(callback: (user: AuthUser | null) => void) {
         supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
             if (session?.user) {
@@ -228,6 +275,11 @@ export class AuthService {
         });
     }
 
+    /**
+     * Obtiene el usuario actualmente autenticado consultando Supabase Auth y la tabla `profiles`.
+     * Actualiza el estado local y el localStorage con los datos más recientes.
+     * @returns `AuthUser` si hay sesión activa, `null` en caso contrario.
+     */
     async getCurrentUser(): Promise<AuthUser | null> {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) return null;
@@ -251,6 +303,11 @@ export class AuthService {
         return this.user;
     }
 
+    /**
+     * Persiste el token JWT y los datos del usuario en localStorage.
+     * @param token - Token de acceso JWT de la sesión de Supabase.
+     * @param user - Objeto `AuthUser` con los datos del usuario autenticado.
+     */
     setUserSession(token: string, user: AuthUser) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
