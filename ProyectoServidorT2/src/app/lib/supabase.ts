@@ -19,7 +19,11 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storageKey: 'sb-session',
-      lock: debugLock as any 
+      lock: {
+        acquire: () => Promise.resolve(() => Promise.resolve()),
+        release: () => Promise.resolve(),
+        update: () => Promise.resolve(),
+      } as any
     }
   }
 );
