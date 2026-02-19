@@ -26,24 +26,14 @@ export class AuthService {
     private isManualLogout = false;
 
     constructor() {
+        // Escucha de cambios de estado segura
         supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
             if (session?.user) {
                 await this.updateLocalUserState(session);
             }
 
             if (event === 'SIGNED_OUT') {
-                this.user = null;
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                if (!this.isManualLogout) {
-                    this.notificationService.show('Tu sesión ha expirado', 'error');
-                }
-                this.isManualLogout = false;
-                this.router.navigate(['/login']);
-            }
-            
-            if (event === 'TOKEN_REFRESHED' && session) {
-                this.setUserSession(session.access_token, this.user!);
+                this.handleLogoutCleanup();
             }
         });
 
@@ -51,43 +41,57 @@ export class AuthService {
     }
 
     private async initSession() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            await this.updateLocalUserState(session);
-        } else {
-            this.user = null;
+        try {
+            // Obtenemos la respuesta completa sin desestructurar para evitar el crash
+            const response = await supabase.auth.getSession();
+            
+            if (response && response.data && response.data.session) {
+                await this.updateLocalUserState(response.data.session);
+            }
+        } catch (error) {
+            console.error('Error al inicializar sesión:', error);
         }
     }
 
     private async updateLocalUserState(session: Session) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+        try {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
 
-        this.user = {
-            id: session.user.id,
-            name: profile?.full_name || session.user.user_metadata['name'] || '',
-            email: session.user.email || '',
-            role: profile?.role || 'user',
-            avatar: profile?.avatar_url || session.user.user_metadata['avatar_url'],
-            created_at: session.user.created_at
-        };
+            this.user = {
+                id: session.user.id,
+                name: profile?.full_name || session.user.user_metadata['name'] || '',
+                email: session.user.email || '',
+                role: profile?.role || 'user',
+                avatar: profile?.avatar_url || session.user.user_metadata['avatar_url'],
+                created_at: session.user.created_at
+            };
 
-        this.setUserSession(session.access_token, this.user);
+            this.setUserSession(session.access_token, this.user);
+        } catch (err) {
+            console.error('Error actualizando estado de usuario:', err);
+        }
+    }
+
+    private handleLogoutCleanup() {
+        this.user = null;
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (!this.isManualLogout) {
+            this.notificationService.show('Tu sesión ha expirado', 'error');
+        }
+        this.isManualLogout = false;
+        this.router.navigate(['/login']);
     }
 
     async checkSession(): Promise<boolean> {
         try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) {
-                this.user = null;
-                return false;
-            }
-            return true;
-        } catch (err) {
-            console.error('Error crítico comprobando sesión:', err);
+            const { data } = await supabase.auth.getSession();
+            return !!(data && data.session);
+        } catch {
             return false;
         }
     }
