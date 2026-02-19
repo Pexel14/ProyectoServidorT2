@@ -53,6 +53,7 @@ export class OrderDetailsModalComponent {
     this.showCancelConfirmation = false;
   }
 
+  // Cancela en backend y actualiza el estado visible
   async confirmCancel() {
     this.showCancelConfirmation = false;
     if (!this.order) return;

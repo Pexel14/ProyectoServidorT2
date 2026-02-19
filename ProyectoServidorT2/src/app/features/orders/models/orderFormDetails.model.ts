@@ -1,3 +1,4 @@
+// Datos de entrega requeridos al confirmar un pedido
 export interface OrderFormDetails {
   calle: string;
   numero: string;

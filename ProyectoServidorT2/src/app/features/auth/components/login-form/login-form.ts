@@ -30,6 +30,7 @@ export class LoginForm implements OnChanges {
     })
   }
 
+  // Intenta autenticar y redirige según el rol del usuario
   onLogin() {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value
@@ -55,6 +56,7 @@ export class LoginForm implements OnChanges {
     this.alertVisible.set(false)
   }
 
+  // Sincroniza email inicial cuando cambia desde la ruta
   ngOnChanges(changes: SimpleChanges) {
     if (changes['prefilledEmail'] && this.prefilledEmail) {
       this.loginForm.patchValue({ email: this.prefilledEmail });

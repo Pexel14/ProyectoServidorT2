@@ -10,15 +10,16 @@ export class NotificationService {
   type = signal<NotificationType>('success');
   visible = signal(false);
 
+  // Activa la alerta
   show(message: string, type: NotificationType = 'success') {
     this.message.set(message);
     this.type.set(type);
     this.visible.set(true);
   }
 
+  // Oculta sin perder el último mensaje hasta limpiarlo
   dismiss() {
     this.visible.set(false);
-    // Give time for animation before clearing message
     setTimeout(() => {
       this.message.set(null);
     }, 300);

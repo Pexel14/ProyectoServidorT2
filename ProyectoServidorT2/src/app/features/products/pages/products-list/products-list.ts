@@ -22,6 +22,7 @@ export class ProductsList implements OnInit {
     this.loadProducts();
   }
 
+  // Carga productos desde backend y mantiene estado de carga
   async loadProducts() {
     this.loading = true;
     try {

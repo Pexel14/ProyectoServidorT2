@@ -1,3 +1,4 @@
+// Contrato tipado del usuario usado en el front.
 export type User = {
     id: string,
     email: string,

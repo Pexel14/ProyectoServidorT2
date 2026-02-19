@@ -31,12 +31,14 @@ export class RegisterFormComponent {
     }, { validators: this.passwordsMatch })
   }
 
+  // Validador de grupo para evitar contraseñas no coincidentes
   private passwordsMatch(group: FormGroup) {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
     return password === confirmPassword ? null : { passwordsMismatch: true };
   }
 
+  // Crea la cuenta y, si todo va bien, redirige al login
   onRegister() {
     if (this.formGroup.valid) {
       const { name, email, password } = this.formGroup.value

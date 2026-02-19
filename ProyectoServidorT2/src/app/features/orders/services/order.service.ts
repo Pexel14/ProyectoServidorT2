@@ -11,6 +11,7 @@ import { OrderFilters } from '../models/orderFilter.model';
 })
 export class OrderService {
   
+  // Persiste primero la cabecera y después las líneas del pedido
   async createOrder(items: CartItem[], totalAmount: number, details: OrderFormDetails): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -69,9 +70,8 @@ export class OrderService {
     }
   }
 
+  // Obtiene pedidos del usuario autenticado aplicando filtros opcionales
   async getOrders(filters?: OrderFilters): Promise<any[]> {
-    // getSession() reads from local cache first — avoids returning null
-    // while the session is being restored from localStorage on page load.
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return [];
     const user = session.user;
@@ -159,6 +159,7 @@ export class OrderService {
     return data || [];
   }
 
+  // Vista admin: enriquece pedidos con datos de perfil del comprador
   async getAllOrders(filters?: OrderFilters): Promise<any[]> {
     let query = supabase
       .from('Pedidos')

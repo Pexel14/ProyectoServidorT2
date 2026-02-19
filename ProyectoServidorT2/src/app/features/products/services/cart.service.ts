@@ -13,6 +13,7 @@ export class CartService {
   private notificationService = inject(NotificationService);
   cartItems = signal<CartItem[]>(this.loadFromStorage());
 
+  // Si no hay sesion, no se permite añadir al carrito
   private hasAuthenticatedSession(): boolean {
     const token = localStorage.getItem('token');
     return !!token;
@@ -43,6 +44,7 @@ export class CartService {
     return this.cartItems;
   }
 
+  // Incrementa cantidad o inserta nuevo ítem con un limite de 5
   addToCart(product: Product) {
     if (!this.hasAuthenticatedSession()) {
       this.notificationService.show('Debes iniciar sesión para añadir productos al carrito', 'error');

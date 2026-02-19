@@ -35,6 +35,7 @@ export class OrdersList implements OnInit {
     this.refreshOrders();
   }
 
+  // Limpia y recarga pedidos con los filtros actualmente seleccionados
   async refreshOrders() {
     this.loading = true;
     this.orders = [];
@@ -74,6 +75,7 @@ export class OrdersList implements OnInit {
       .replace(/[^a-z0-9-]/g, '');
   }
 
+  // Muestra modal inmediatamente y luego sustituye por detalle completo
   async viewOrder(order: any) {
     this.selectedOrder = order;
     this.showDetails = true;

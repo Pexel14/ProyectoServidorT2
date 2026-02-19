@@ -56,6 +56,7 @@ export class CheckoutModalComponent {
     }
   }
 
+  // Solicita confirmación si hay cambios pendientes y no se está enviando
   onCloseRequest() {
     if (this.checkoutForm.dirty && !this.isSubmitting) {
       this.showConfirmation = true;
@@ -108,6 +109,7 @@ export class CheckoutModalComponent {
     }
   }
 
+  // Envía el pedido y limpia estado local solo cuando la operación finaliza bien
   async onSubmit() {
     if (this.checkoutForm.invalid) {
       this.checkoutForm.markAllAsTouched();

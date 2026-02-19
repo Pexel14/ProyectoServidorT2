@@ -34,6 +34,7 @@ export class AuthService {
         void this.initSession();
     }
 
+    // Centraliza la reacción a cambios de sesión emitidos por Supabase
     private async processAuthStateChange(event: AuthChangeEvent, session: Session | null) {
         if (event === 'SIGNED_OUT') {
             this.handleLogoutCleanup();
@@ -62,6 +63,7 @@ export class AuthService {
         localStorage.removeItem('user');
     }
 
+    // Limpia claves legacy y actuales para evitar sesiones fantasma
     private clearSupabasePersistedSession() {
         localStorage.removeItem('sb-session');
         localStorage.removeItem('sb-access-token');
@@ -85,6 +87,7 @@ export class AuthService {
         this.clearSupabasePersistedSession();
     }
 
+    // Sincroniza el estado local con Supabase
     private async initSession() {
         try {
             // Obtenemos la respuesta completa sin desestructurar para evitar el crash
@@ -140,7 +143,7 @@ export class AuthService {
     }
 
     /**
-     * Verifica si existe una sesión activa en Supabase.
+     * Verifica si existe una sesión activa en Supabase. Intenta refrescar el token si la sesión ha expirado.
      * @returns `true` si hay sesión válida, `false` en caso contrario.
      */
     async checkSession(): Promise<boolean> {

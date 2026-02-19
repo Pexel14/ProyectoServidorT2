@@ -17,7 +17,7 @@ export class App {
   protected readonly title = signal('ProyectoServidorT2');
   protected showNavbar = signal(false);
   notificationService = inject(NotificationService);
-  // Inject AuthService to start session monitoring immediately
+  
   authService = inject(AuthService);
 
   constructor(private router: Router) {

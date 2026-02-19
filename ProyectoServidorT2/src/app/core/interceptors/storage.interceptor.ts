@@ -1,3 +1,4 @@
+// Interceptor para peticiones de storage
 export const storageInterceptor = (req: Request, next: (req: Request) => Promise<Response>): Promise<Response> => {
     const token = localStorage.getItem('token')
     if (token) {

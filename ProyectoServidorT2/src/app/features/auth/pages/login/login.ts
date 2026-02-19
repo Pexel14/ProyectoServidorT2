@@ -19,6 +19,7 @@ export class Login implements OnInit {
     private authService: AuthService
   ) {}
 
+  // Escucha query params para recuperar email tras registrar
   ngOnInit() {
     this.route.queryParams.subscribe(async params => {
       if (params['email']) {
@@ -29,6 +30,7 @@ export class Login implements OnInit {
     void this.authService.clearSessionForLogin();
   }
 
+  // Permite navegación pública al catálogo de productos sin sesión activa
   async enterAsGuest(): Promise<void> {
     await this.authService.clearSessionForLogin();
     this.router.navigate(['/productos']);

@@ -15,6 +15,7 @@ export class ProductCardComponent {
 
     constructor(private cartService: CartService) {}
 
+    // Delega la operación al servicio de carrito
     addToCart() {
         this.cartService.addToCart(this.product);
     }
